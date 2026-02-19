@@ -1,0 +1,24 @@
+{
+  "name": "amber",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "pnpm -w biome format . --write",
+    "format:check": "pnpm -w biome format .",
+    "check": "pnpm -w biome check .",
+    "check:fix": "pnpm -w biome check . --write"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.8.1",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  }
+}

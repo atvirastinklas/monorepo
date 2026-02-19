@@ -1,0 +1,26 @@
+{
+  "Root": {
+    "projectName": "Atviras Tinklas"
+  },
+  "Navbar": {
+    "menu": {
+      "docs": "Žinynas"
+    },
+    "github": "GitHub"
+  },
+  "HeroSection": {
+    "title": "Atvira ryšio infrastruktūra Lietuvoje",
+    "description": "Siekiame sukurti atvirą ryšio tinklą, kuriuo galėtų naudotis visi - tiek nelaimės atveju, tiek kasdieniam bendravimui. Tai nepriklausoma sistema, veikianti be interneto ir mobiliojo ryšio.",
+    "cta": {
+      "getStarted": "Prisijunk prie tinklo",
+      "map": "Žemėlapis"
+    },
+    "imageAlt": "Mazgas ant vėliavos stulpo su saulės panelėmis"
+  },
+  "Footer": {
+    "tagLine": "Su ♥ iš Lietuvos bendruomenės",
+    "links": {
+      "privacy": "Privatumo politika"
+    }
+  }
+}
