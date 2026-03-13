@@ -1,0 +1,18 @@
+import { RiGithubLine } from "@remixicon/react";
+
+## Bootloader atnaujinimas (OTA fix)
+
+Rekomenduojama atnaujinti bootloaderį su papildomais pataisymais kurie gali padidinti šansą sėkmingai atlikti bevielį atnaujinimą.
+
+<Card 
+    href="https://github.com/oltaco/Adafruit_nRF52_Bootloader_OTAFIX/releases" 
+    title="GitHub Releases" 
+    icon={<RiGithubLine />} className="inline-block">
+    oltaco/Adafruit_nRF52_Bootloader_OTAFIX
+</Card>
+
+1. Atidarykite "GitHub Releases" nuorodą.
+2. Atsiųskite teisingą firmware failą savo įrenginiui.
+    - `.zip` - atnaujinimas naudojant `nRF DFU` programėlę
+    - `.uf2` - atnaujinimas įkeliant per USB
+3. Įjunkite OTA rėžimą arba du kartus spustelėkite `RESET` mygtuką ant įrenginio ir įtempkite į atsiradusį `DFU` diską

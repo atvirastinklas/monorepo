@@ -1,9 +1,12 @@
 import type { ComponentProps, ComponentType } from "react";
 import { getTranslations } from "next-intl/server";
 
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import * as TabsComponents from 'fumadocs-ui/components/tabs';
 import { getMDXComponents } from "@/mdx-components";
 import { source } from "@/lib/source";
 import { createRelativeLink } from "fumadocs-ui/mdx";
+import * as CarouselComponents from "@workspace/ui/components/carousel";
 import {
   DocsBody,
   DocsDescription,
@@ -41,6 +44,9 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
         <MDX
           components={getMDXComponents({
             a: createRelativeLink(source, page),
+            img: ImageZoom,
+            ...TabsComponents,
+            ...CarouselComponents
           })}
         />
       </DocsBody>

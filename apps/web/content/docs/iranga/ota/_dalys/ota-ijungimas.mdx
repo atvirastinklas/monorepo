@@ -1,0 +1,25 @@
+## OTA režimo įjungimas
+
+<Tabs items={["MeshCore aplikacija", "Meshtastic"]}>
+<Tab value="MeshCore aplikacija">
+Prieš įkeliant naują firmware reikia perjungti kartotuvą į OTA režimą. Tai galima padaryti per mobiliąją programėlę `MeshCore`: [iOS](https://apps.apple.com/us/app/meshcore/id6742354151) / [Android](https://play.google.com/store/apps/details?id=com.liamcottle.meshcore.android).
+1. Programėlėje pasirinkite kartotuvą iš kontaktų sąrašo.
+
+![Kontaktų sąrašas su vienu kartotuvu](./photos/contacts-select-repeater.jpg)
+
+2. Prisijunkite prie kartotuvo kaip administratorius
+
+![Prisijungimas prie kartotuvo kaip administratorius](./photos/repeater-login.jpg)
+
+2. Atidarykite `Command Line` skirtuką.
+3. Įveskite komandą `start ota` ir paspauskite `Enter`.
+4. Jei viskas pavyko, pamatysite atsakymą `OK`, o įrenginys pereis į OTA režimą. Ekrane gali būti parodytas ir Bluetooth MAC adresas.
+
+![Command Line skirtukas](./photos/terminal-start-ota.jpg)
+
+Jei įrenginio vėliau nematote `nRF DFU` programėlėje, pabandykite dar kartą įjungti OTA režimą.
+</Tab>
+<Tab value="Meshtastic">
+Įsitikinkite, kad Meshtastic įrenginyje yra įjungtas Bluetooth.
+</Tab>
+</Tabs>
