@@ -1,6 +1,37 @@
 ---
-title: Placeholder
-description: Placeholder
+title: MeshCore Tinklas
+description: Apžvalga MeshCore tinklo Lietuvoje
 ---
 
-Hello World
+MeshCore yra atviro kodo radijo ryšio protokolas leidžiantis saugiai perduoti ir priimti tekstinius pranešimus (žinutes) be mobiliojo ryšio ar interneto infrastruktūros.
+
+Bendravimui naudojami maži ir nebrangūs LoRa radijo įrenginiai kartu su MeshCore programėle [Android](https://play.google.com/store/apps/details?id=com.liamcottle.meshcore.android) arba [iOS](https://apps.apple.com/us/app/meshcore/id6742354151) telefone.
+
+MeshCore tinkle daugiausia dėmesio skiriama patikimam žinučių perdavimui.
+
+## Radio nustatymai
+
+Lietuvoje naudojamas radio profilis `EU/UK (Narrow), Switzerland`.
+
+<div className="max-w-md">
+| Nustatymas | Reikšmė |
+| --- | --- |
+| Frequency | 869.618 MHz |
+| Bandwidth | 62.5 kHz |
+| Spreading Factor | 8 |
+| Coding Rate | 8 |
+</div>
+
+## Tinklo žemėlapis
+
+Šiuo metu Lietuvoje yra 2 regionai: VNO ir KUN.
+
+<iframe
+  src="https://analyzer.letsmesh.net/map?lat=55.29885&long=23.85644&zoom=6"
+  width="100%"
+  height="600"
+  style={{ border: 'none', maxWidth: "765px" }}
+  allowFullScreen
+  aria-hidden={false}
+  tabIndex={0}
+/>
