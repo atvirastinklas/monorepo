@@ -18,6 +18,7 @@
     "@opennextjs/cloudflare": "^1.16.5",
     "@remixicon/react": "^4.6.0",
     "@types/mdx": "^2.0.13",
+    "@workspace/map": "workspace:*",
     "@workspace/ui": "workspace:*",
     "fumadocs-core": "^16.6.3",
     "fumadocs-mdx": "^14.2.7",

@@ -13,6 +13,7 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/layouts/docs/page";
+import { NamingRegionMap } from "../maps/naming-region-map";
 
 type ResolvedDocsPage = NonNullable<ReturnType<typeof source.getPage>>;
 
@@ -46,7 +47,8 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             a: createRelativeLink(source, page),
             img: ImageZoom,
             ...TabsComponents,
-            ...CarouselComponents
+            ...CarouselComponents,
+            NamingRegionMap: NamingRegionMap
           })}
         />
       </DocsBody>
