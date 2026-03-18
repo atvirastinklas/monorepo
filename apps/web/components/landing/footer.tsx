@@ -6,8 +6,8 @@ import { Button } from "@workspace/ui/components/button";
 export async function Footer() {
   const t = await getTranslations("Footer");
 
-  const footerLinks = [
-    { href: "/privacy", label: t("links.privacy") }
+  const footerLinks: Array<{ href: string; label: string }> = [
+    // { href: "/privacy", label: t("links.privacy") }
   ];
 
   return (

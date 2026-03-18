@@ -21,9 +21,9 @@ export async function HeroSection() {
             <Button asChild size="lg">
               <Link href="/zinynas">{t("cta.getStarted")}</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" disabled>
+            {/* <Button asChild size="lg" variant="outline" disabled>
               <Link href="#map">{t("cta.map")}</Link>
-            </Button>
+            </Button> */}
           </div>
         </div>
 
