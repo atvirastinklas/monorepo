@@ -28,12 +28,12 @@ export function TOCItems({ ref, className, ...props }: ComponentProps<'div'>) {
       const d: string[] = [];
       for (let i = 0; i < items.length; i++) {
         const element: HTMLElement | null = container.querySelector(
-          `a[href="#${items[i].url.slice(1)}"]`,
+          `a[href="#${items[i]?.url.slice(1)}"]`,
         );
         if (!element) continue;
 
         const styles = getComputedStyle(element);
-        const offset = getLineOffset(items[i].depth) + 1,
+        const offset = getLineOffset(items[i]?.depth ?? 0) + 1,
           top = element.offsetTop + parseFloat(styles.paddingTop),
           bottom = element.offsetTop + element.clientHeight - parseFloat(styles.paddingBottom);
 
@@ -80,7 +80,7 @@ export function TOCItems({ ref, className, ...props }: ComponentProps<'div'>) {
               encodeURIComponent(
                 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svg.width} ${svg.height}"><path d="${svg.path}" stroke="black" stroke-width="1" fill="none" /></svg>`,
               )
-            }")`,
+              }")`,
           }}
         >
           <TocThumb
