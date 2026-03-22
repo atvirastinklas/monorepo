@@ -6,6 +6,8 @@
     "declarationMap": false,
     "paths": {
       "@/*": ["./*"],
+      "@workspace/map": ["../../packages/map/src/index.ts"],
+      "@workspace/map/*": ["../../packages/map/src/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
       "fumadocs-mdx:collections/*": [".source/*"]
     },

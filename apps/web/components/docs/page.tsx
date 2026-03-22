@@ -13,6 +13,8 @@ import {
   DocsPage,
   DocsTitle,
 } from "@/components/layout/docs/page";
+import { NamingFormatValidator } from "./naming-format-validator";
+import { NamingRegionMap } from "../maps/naming-region-map";
 
 type ResolvedDocsPage = NonNullable<ReturnType<typeof source.getPage>>;
 
@@ -46,7 +48,9 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             a: createRelativeLink(source, page),
             img: ImageZoom,
             ...TabsComponents,
-            ...CarouselComponents
+            ...CarouselComponents,
+            NamingFormatValidator: NamingFormatValidator,
+            NamingRegionMap: NamingRegionMap
           })}
         />
       </DocsBody>

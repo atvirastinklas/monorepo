@@ -1,0 +1,75 @@
+---
+title: Pavadinimų formatas
+description: Kaip pavadinti teisingai retransliatorių Lietuvoje
+---
+
+## Formatas
+
+Retransliatoriaus pavadinimą rekomenduojama formuoti pagal šią struktūrą:
+
+```
+{Kodas}-{Mikrorajonas|Vietovė}-{ID}[-Kryptis]
+```
+
+- `Kodas` - miesto kodas, jeigu miesto ribose, apskrities kodas, jeigu už miesto ribų.
+- `Mikrorajonas` -  miesto mikrorajonas, miesto gyvenvietė, miesto žymi vieta.
+- `Vietovė` - apskrities miestas (išskyrus apsk. centrą), miestelis, gyvenvietė, kaimas, žymi vieta.
+- `ID` -  retransliatoriaus viešojo rakto pirmieji 2 simboliai.
+- `Kryptis` (neprivaloma) - retransliatoriaus spinduliavimo kryptis: N,NE,E,SE,S,SW,W,NW
+
+| Apskritis              | Apskrities kodas | Miesto kodas (apskrities centras) | [IATA regionas](../regionai) |
+| ---------------------- | ---------------- | --------------------------------- | ---------------------------- |
+| Alytaus apskritis      | AA               | AM                                | KUN                          |
+| Kauno apskritis        | KA               | KM                                | KUN                          |
+| Klaipėdos apskritis    | LA               | LM                                | PLQ                          |
+| Marijampolės apskritis | MA               | MM                                | KUN                          |
+| Panevėžio apskritis    | PA               | PM                                | SQQ                          |
+| Šiaulių apskritis      | SA               | SM                                | SQQ                          |
+| Tauragės apskritis     | TA               | TM                                | PLQ                          |
+| Telšių apskritis       | EA               | EM                                | PLQ                          |
+| Utenos apskritis       | UA               | UM                                | VNO                          |
+| Vilniaus apskritis     | VA               | VM                                | VNO                          |
+
+## Pavyzdžiai
+<div className="grid gap-6 md:grid-cols-2">
+  <div>
+    ### Apskričių centrų miestuose
+    
+    Vilniaus miesto ribose:
+
+    - VM-Žvėrynas-6D-SE
+    - VM-Antakalnis-5D-W
+    - VM-Tarandė-F5
+
+    Kauno miesto ribose:
+
+    - KM-Romainiai-C5
+    - KM-Šilainiai2-12
+    - KM-Žaliakalnis-44
+
+    Panevėžio miesto ribose:
+
+    - PM-Pilėnai-D6
+    - PM-Senvagė-B2
+  </div>
+  <div>
+    ### Apskrityse už miesto ribų
+    
+    - VA-Avižieniai-84
+    - VA-Stripūnai-23
+    - VA-Trakai-E4
+    - KA-Domeikava-59
+    - KA-Garliava-C1
+    - AA-Lazdijai-3F
+    - LA-Palanga-4A
+    - LA-Kintai-09
+    - SA-Radviliškis-03
+    - PA-Biržai-B3
+  </div>
+</div>
+
+## Tikrintuvas
+
+Įveskite pavadinimą ir iškart matysite, kuri dalis atitinka formatą, o kurią dar reikia pataisyti.
+
+<NamingFormatValidator />

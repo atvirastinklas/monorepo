@@ -7,7 +7,7 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@workspace/ui"],
+  transpilePackages: ["@workspace/ui", "@workspace/map"],
 };
 
 export default withMDX(withNextIntl(nextConfig));
