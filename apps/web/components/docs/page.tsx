@@ -13,6 +13,7 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/layouts/docs/page";
+import { NamingFormatValidator } from "./naming-format-validator";
 import { NamingRegionMap } from "../maps/naming-region-map";
 
 type ResolvedDocsPage = NonNullable<ReturnType<typeof source.getPage>>;
@@ -48,6 +49,7 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             img: ImageZoom,
             ...TabsComponents,
             ...CarouselComponents,
+            NamingFormatValidator: NamingFormatValidator,
             NamingRegionMap: NamingRegionMap
           })}
         />
