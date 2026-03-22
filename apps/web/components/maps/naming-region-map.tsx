@@ -1,24 +1,16 @@
 "use client";
 
 import {
-  GeoJsonSource,
-  MapContainer,
-  MapLayer
+  MapLibre,
+  MapSource,
+  MapLayer,
 } from "@workspace/map";
+import { useTheme } from "next-themes";
 
 const lithuaniaBounds = [
   [19.5, 53.2],
   [28.0, 57.2],
 ] as [[number, number], [number, number]];
-
-const initialOptions = {
-  style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-  bounds: lithuaniaBounds,
-  fitBoundsOptions: {
-    padding: 24,
-  },
-  maxBounds: lithuaniaBounds,
-};
 
 const regionsSourceId = "mc-regions-source";
 const regionMarkerSourceId = "mc-region-marker-source";
@@ -89,57 +81,69 @@ const regionAccentColorExpression = [
   "#334155",
 ];
 
+const mapStyle = (theme: string | undefined) => {
+  const style = theme === "light" ? "voyager-gl-style" : "dark-matter-gl-style";
+  return `https://basemaps.cartocdn.com/gl/${style}/style.json`;
+};
+
 export const NamingRegionMap = () => {
+  const { theme } = useTheme();
+  const isLightTheme = theme === "light";
+
   return (
-    <MapContainer initialOptions={initialOptions} className="h-120 w-full">
-      <GeoJsonSource id={regionsSourceId} data="/assets/map/mc-regions.geojson">
-        <MapLayer
-          id="mc-regions-fill"
-          config={{
-            type: "fill",
-            paint: {
+    <div className="flex-1 h-120">
+      <MapLibre
+        initialViewState={{
+          bounds: [
+            [19.5, 53.2],
+            [28.0, 57.2],
+          ],
+          fitBoundsOptions: { padding: 40 },
+        }}
+        maxBounds={lithuaniaBounds}
+        mapStyle={mapStyle(theme)}
+      >
+        <MapSource id={regionsSourceId} data="/assets/map/mc-regions.geojson" type="geojson">
+          <MapLayer
+            id="mc-regions-fill"
+            type="fill"
+            paint={{
               "fill-color": regionFillColorExpression as any,
               "fill-opacity": 0.22,
-            },
-          }}
-        />
-        <MapLayer
-          id="mc-regions-outline"
-          config={{
-            type: "line",
-            paint: {
+            }}
+          />
+          <MapLayer
+            id="mc-regions-outline"
+            type="line"
+            paint={{
               "line-color": regionAccentColorExpression as any,
               "line-width": 2,
               "line-opacity": 0.95,
-            },
-          }}
-        />
-      </GeoJsonSource>
-      <GeoJsonSource id={regionMarkerSourceId} data={regionMarkerPoints}>
-        <MapLayer
-          id="mc-region-marker-iata"
-          config={{
-            type: "symbol",
-            layout: {
+            }}
+          />
+        </MapSource>
+        <MapSource id={regionMarkerSourceId} data={regionMarkerPoints} type="geojson">
+          <MapLayer
+            id="mc-region-marker-iata"
+            type="symbol"
+            layout={{
               "text-field": "{iata_code}",
               "text-size": 24,
               "text-font": ["Open Sans Bold", "Noto Sans Regular"],
               "text-allow-overlap": true,
               "text-ignore-placement": true,
               "text-anchor": "center",
-            },
-            paint: {
+            }}
+            paint={{
               "text-color": "#f8fafc",
               "text-halo-color": "rgba(2, 6, 23, 0.92)",
               "text-halo-width": 2,
-            },
-          }}
-        />
-        <MapLayer
-          id="mc-region-marker-name"
-          config={{
-            type: "symbol",
-            layout: {
+            }}
+          />
+          <MapLayer
+            id="mc-region-marker-name"
+            type="symbol"
+            layout={{
               "text-field": "{name}",
               "text-size": 11,
               "text-font": ["Montserrat Regular", "Open Sans Regular", "Noto Sans Regular"],
@@ -147,16 +151,15 @@ export const NamingRegionMap = () => {
               "text-ignore-placement": true,
               "text-anchor": "top",
               "text-offset": [0, 2.2],
-            },
-            paint: {
-              "text-color": "#cbd5e1",
-              "text-halo-color": "rgba(2, 6, 23, 0.82)",
-              "text-halo-width": 4,
-              "text-halo-blur": 0.5,
-            },
-          }}
-        />
-      </GeoJsonSource>
-    </MapContainer>
+            }}
+            paint={{
+              "text-color": isLightTheme ? "#0f172a" : "#e2e8f0",
+              "text-halo-color": isLightTheme ? "rgba(248, 250, 252, 0.92)" : "rgba(2, 6, 23, 0.95)",
+              "text-halo-width": 1.5,
+            }}
+          />
+        </MapSource>
+      </MapLibre>
+    </div>
   );
 };

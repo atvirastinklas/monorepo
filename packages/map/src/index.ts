@@ -1,3 +1,1 @@
-export * from "./map-container";
-export * from "./geojson-source";
-export * from "./map-layer";
+export { Map as MapLibre, Source as MapSource, Layer as MapLayer } from "@vis.gl/react-maplibre";

@@ -185,12 +185,12 @@ export function DocsLayout({
                   </LinkItem>
                 ))}
               </div>
-              {i18n && (
+              {/* {i18n && (
                 <LanguageToggle>
                   <Languages className="size-4.5" />
                   <LanguageToggleText />
                 </LanguageToggle>
-              )}
+              )} */}
               {themeSwitch.enabled !== false &&
                 (themeSwitch.component ?? <ThemeToggle className="p-0" mode={themeSwitch.mode} />)}
               <SidebarTrigger
