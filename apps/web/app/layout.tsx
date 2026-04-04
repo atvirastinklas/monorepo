@@ -1,9 +1,19 @@
+import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { getMessages } from "next-intl/server";
 
 import "@/app/globals.css";
 import { Providers } from "@/components/providers";
 import { defaultLocale, defaultTimeZone } from "@/i18n/config";
+
+const siteTitle = "Atviras Tinklas";
+
+export const metadata: Metadata = {
+  title: {
+    default: siteTitle,
+    template: `%s - ${siteTitle}`,
+  },
+};
 
 const fontNotoSans = Noto_Sans({
   subsets: ["latin"],
