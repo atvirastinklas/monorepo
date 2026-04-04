@@ -251,7 +251,7 @@ function validateRepeaterName(input: string): ValidationResult {
 
   if (hasLegacySeparator) {
     formatMessage = "Naudokite tarpus vietoje brūkšnių.";
-    formatDetails = "Formatas yra `{Kodas} {Vietovė} {ID} [Kryptis]`, pvz. `VM VM Šiaurės m. 56 S`.";
+    formatDetails = "Formatas yra `{Kodas} {Vietovė} {ID} [Kryptis]`, pvz. `VM Šiaurės m. 56 S`.";
   } else if (restMatches.length < 2) {
     formatMessage = "Trūksta vienos ar kelių privalomų dalių.";
   } else if (isValid) {
@@ -353,7 +353,7 @@ export function NamingFormatValidator() {
           type="text"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="VM VM Šiaurės m. 56 S"
+          placeholder="VM Šiaurės m. 56 S"
           autoCapitalize="characters"
           spellCheck={false}
           aria-describedby="naming-format-validator-hint naming-format-validator-feedback"
