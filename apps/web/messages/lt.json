@@ -17,6 +17,31 @@
     },
     "imageAlt": "Mazgas ant vėliavos stulpo su saulės panelėmis"
   },
+  "FeaturesSection": {
+    "heading": "Kodėl verta naudotis tinklu",
+    "items": {
+      "offGrid": {
+        "title": "Nepriklausomas ryšys",
+        "description": "Išlik prisijungęs be interneto ar mobiliojo ryšio."
+      },
+      "longRange": {
+        "title": "Didelio nuotolio ryšys",
+        "description": "Bendrauk dideliais atstumais naudodamas mažai energijos naudojantį LoRa radiją."
+      },
+      "meshNetworking": {
+        "title": "Augantis mesh tinklas",
+        "description": "Tinklo aprėptį gali plėsti kiekvienas, naudodamas nebrangius įrenginius."
+      },
+      "privateSecure": {
+        "title": "Privatus ir saugus bendravimas",
+        "description": "Žinutės šifruojamos, o ryšys išlieka privatus."
+      },
+      "disasterSolar": {
+        "title": "Atsparus nelaimėms",
+        "description": "Saulės energija maitinami retransliatoriai palaiko ryšį net dingus elektrai."
+      }
+    }
+  },
   "Footer": {
     "tagLine": "Su ♥ iš Lietuvos bendruomenės",
     "links": {
