@@ -42,10 +42,11 @@ const directionLabels = {
 const validCodes = Object.keys(codeLabels) as Array<keyof typeof codeLabels>;
 const validDirections = Object.keys(directionLabels) as Array<keyof typeof directionLabels>;
 
-const exampleNames = ["VM-Žvėrynas-6D-SE", "KM-Šilainiai2-12", "LA-Kintai-09"] as const;
+const exampleNames = ["VM Žvėrynas 6D SE", "KM Šilainiai II 12", "VM Šiaurės m. 56 S"] as const;
 
-const namingFormat = "{Kodas}-{Vietovė}-{ID}[-Kryptis]";
-const placePattern = /^[0-9A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]+$/u;
+const namingFormat = "{Kodas} {Vietovė} {ID} [Kryptis]";
+const placeTokenPattern = "[0-9A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]+\\.?";
+const placePattern = new RegExp(`^${placeTokenPattern}(?:\\s+${placeTokenPattern})*$`, "u");
 const idPattern = /^(?:[0-9A-F]{2}){1,3}$/;
 
 const validCodeDetails = validCodes.map((code) => `${code}: ${codeLabels[code]}`).join(", ");
@@ -74,8 +75,19 @@ type ValidationResult = {
 
 function validateRepeaterName(input: string): ValidationResult {
   const value = input.trim();
-  const segments = value ? value.split("-").map((segment) => segment.trim()) : [];
-  const [codeRaw = "", placeRaw = "", idRaw = "", directionRaw = ""] = segments;
+  const tokenMatches = Array.from(value.matchAll(/\S+/g));
+  const codeRaw = tokenMatches[0]?.[0] ?? "";
+  const restMatches = tokenMatches.slice(1);
+  const lastRestMatch = restMatches.at(-1);
+  const directionCandidate = lastRestMatch?.[0].toUpperCase() ?? "";
+  const hasDirection = validDirections.includes(directionCandidate as (typeof validDirections)[number]);
+  const idMatch = restMatches.at(hasDirection ? -2 : -1);
+  const placeStart = restMatches[0]?.index;
+  const placeEnd = idMatch?.index;
+  const placeRaw =
+    placeStart !== undefined && placeEnd !== undefined ? value.slice(placeStart, placeEnd).trim() : "";
+  const idRaw = idMatch?.[0] ?? "";
+  const directionRaw = hasDirection ? lastRestMatch?.[0] ?? "" : "";
   const code = codeRaw.toUpperCase();
   const id = idRaw.toUpperCase();
   const direction = directionRaw.toUpperCase();
@@ -93,7 +105,7 @@ function validateRepeaterName(input: string): ValidationResult {
       value: placeRaw,
       state: "idle",
       description: "Mikrorajonas arba vietovė.",
-      details: "Naudokite lietuviškas raides ir skaičius, be tarpų ir papildomų brūkšnių.",
+      details: "Naudokite lietuviškas raides, skaičius ir tarpus. Sutrumpinimams galima naudoti tašką.",
     },
     id: {
       label: "ID",
@@ -111,13 +123,10 @@ function validateRepeaterName(input: string): ValidationResult {
     },
   };
 
-  const hasTooManySegments = segments.length > 4;
-  const hasEmptyRequiredPart = segments.slice(0, 3).some((segment) => !segment);
-  const hasEmptyDirectionPart = segments.length === 4 && !directionRaw;
-  const canShowNormalizedValue =
-    segments.length >= 3 && !hasTooManySegments && !hasEmptyRequiredPart && !hasEmptyDirectionPart;
+  const hasLegacySeparator = value.includes("-");
+  const canShowNormalizedValue = Boolean(codeRaw && placeRaw && idRaw);
   const normalizedValue = canShowNormalizedValue
-    ? [code, placeRaw, id, direction].filter(Boolean).join("-")
+    ? [code, placeRaw, id, direction].filter(Boolean).join(" ")
     : "";
   const hasNormalizationChange = Boolean(normalizedValue) && normalizedValue !== value;
 
@@ -156,7 +165,7 @@ function validateRepeaterName(input: string): ValidationResult {
     };
   }
 
-  if (segments.length < 2) {
+  if (restMatches.length < 2) {
     parts.place = {
       ...parts.place,
       state: "invalid",
@@ -183,7 +192,7 @@ function validateRepeaterName(input: string): ValidationResult {
     };
   }
 
-  if (segments.length < 3) {
+  if (restMatches.length < 2) {
     parts.id = {
       ...parts.id,
       state: "invalid",
@@ -210,17 +219,11 @@ function validateRepeaterName(input: string): ValidationResult {
     };
   }
 
-  if (segments.length < 4) {
+  if (!directionRaw) {
     parts.direction = {
       ...parts.direction,
       state: "idle",
       description: "Neprivaloma.",
-    };
-  } else if (!directionRaw) {
-    parts.direction = {
-      ...parts.direction,
-      state: "invalid",
-      description: "Kryptis negali būti tuščia.",
     };
   } else if (!validDirections.includes(direction as (typeof validDirections)[number])) {
     parts.direction = {
@@ -238,7 +241,6 @@ function validateRepeaterName(input: string): ValidationResult {
   }
 
   const isValid =
-    !hasTooManySegments &&
     parts.code.state === "valid" &&
     parts.place.state === "valid" &&
     parts.id.state === "valid" &&
@@ -247,22 +249,17 @@ function validateRepeaterName(input: string): ValidationResult {
   let formatMessage = "Pataisykite pažymėtas dalis.";
   let formatDetails: string | undefined;
 
-  if (hasTooManySegments) {
-    formatMessage = "Pavadinimas turi turėti 3 arba 4 dalis.";
-    formatDetails =
-      "Naudokite tik vieną brūkšnį tarp dalių, o vietovės pavadinime brūkšnių nerašykite.";
-  } else if (hasEmptyDirectionPart) {
-    formatMessage = "Paskutinis brūkšnys reiškia tuščią krypties lauką.";
-    formatDetails =
-      "Pašalinkite galinį brūkšnį arba įrašykite kryptį: N, NE, E, SE, S, SW, W arba NW.";
-  } else if (segments.length < 3) {
+  if (hasLegacySeparator) {
+    formatMessage = "Naudokite tarpus vietoje brūkšnių.";
+    formatDetails = "Formatas yra `{Kodas} {Vietovė} {ID} [Kryptis]`, pvz. `VM VM Šiaurės m. 56 S`.";
+  } else if (restMatches.length < 2) {
     formatMessage = "Trūksta vienos ar kelių privalomų dalių.";
   } else if (isValid) {
     formatMessage = hasNormalizationChange
       ? "Pavadinimas atitinka formatą po normalizavimo."
       : "Pavadinimas atitinka rekomenduojamą formatą.";
     formatDetails = hasNormalizationChange
-      ? "Suvienodintas kodas, ID ir kryptis, taip pat pašalinti tarpai aplink brūkšnius."
+      ? "Suvienodintas kodas, ID ir kryptis, taip pat sutvarkyti tarpai tarp dalių."
       : undefined;
   }
 
@@ -356,7 +353,7 @@ export function NamingFormatValidator() {
           type="text"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="VM-Žvėrynas-6D-SE"
+          placeholder="VM VM Šiaurės m. 56 S"
           autoCapitalize="characters"
           spellCheck={false}
           aria-describedby="naming-format-validator-hint naming-format-validator-feedback"
