@@ -6,6 +6,7 @@
     "declarationMap": false,
     "paths": {
       "@/*": ["./*"],
+      "content-collections": [".content-collections/generated"],
       "@workspace/map": ["../../packages/map/src/index.ts"],
       "@workspace/map/*": ["../../packages/map/src/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
@@ -22,6 +23,7 @@
     "next.config.ts",
     "**/*.ts",
     "**/*.tsx",
+    ".content-collections/generated/**/*.d.ts",
     ".source/**/*.ts",
     ".next/types/**/*.ts"
   ],

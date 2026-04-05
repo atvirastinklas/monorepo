@@ -1,7 +1,11 @@
-import createNextIntlPlugin from "next-intl/plugin";
-import { createMDX } from "fumadocs-mdx/next";
+import { createContentCollectionPlugin } from "@content-collections/next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { createMDX } from "fumadocs-mdx/next";
+import createNextIntlPlugin from "next-intl/plugin";
 
+const withContentCollections = createContentCollectionPlugin({
+  configPath: "./content-collections.ts",
+});
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const withMDX = createMDX();
 
@@ -10,6 +14,6 @@ const nextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/map"],
 };
 
-export default withMDX(withNextIntl(nextConfig));
+export default withContentCollections(withMDX(withNextIntl(nextConfig)));
 
 initOpenNextCloudflareForDev();

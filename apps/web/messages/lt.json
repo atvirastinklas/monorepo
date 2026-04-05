@@ -38,9 +38,45 @@
       },
       "disasterSolar": {
         "title": "Atsparus nelaimėms",
-        "description": "Saulės energija maitinami retransliatoriai palaiko ryšį net dingus elektrai."
+        "description": "Saule kraunami retransliatoriai palaiko ryšį net dingus elektrai."
       }
     }
+  },
+  "DevicesSection": {
+    "heading": "Įrenginiai",
+    "buyFromBrand": "Pirkti pas {brand}",
+    "buyFromAliExpress": "Pirkti „AliExpress“",
+    "readMore": "Skaityti daugiau",
+    "deprecatedBadge": "Nebepalaikomas",
+    "groups": {
+      "companion": {
+        "title": "Naudojamas su telefonu arba kompiuteriu",
+        "subtitle": "Prijunk prie programėlės ir siųsk bei gauk žinutes per mazgą."
+      },
+      "repeaters": {
+        "title": "Autonominiai retransliatoriai",
+        "subtitle": "Išplėsk tinklo aprėptį įrengdamas retransliatorių aukštoje vietoje."
+      },
+      "standalone": {
+        "title": "Viskas viename įrenginiai",
+        "subtitle": "Turi integruotą ekraną ir klaviatūrą - telefonas nebūtinas."
+      }
+    }
+  },
+  "DevicePage": {
+    "brand": "Gamintojas",
+    "deviceType": "Įrenginio tipas",
+    "productKind": "Produkto rūšis",
+    "platform": "Platforma",
+    "supportedMesh": "Palaikomi tinklai",
+    "noPhoto": "Nuotrauka dar nepridėta",
+    "featuredBadge": "Rekomenduojamas",
+    "deprecatedBadge": "Pasenęs",
+    "typeCompanion": "Naudojamas su telefonu arba kompiuteriu",
+    "typeRepeater": "Retransliatorius",
+    "typeStandalone": "Įrenginys su integruotu ekranu ir klaviatūra",
+    "productKindDevelopmentKit": "DevKit",
+    "productKindFinishedProduct": "Galutinis produktas"
   },
   "Footer": {
     "tagLine": "Su ♥ iš Lietuvos bendruomenės",

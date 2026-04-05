@@ -25,6 +25,7 @@ coverage
 .next/
 .open-next/
 apps/web/.open-next/
+apps/web/.content-collections/
 .source/
 out/
 build

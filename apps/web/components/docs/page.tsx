@@ -1,25 +1,20 @@
-import type { ComponentProps, ComponentType } from "react";
 import { getTranslations } from "next-intl/server";
+import type { ComponentProps, ComponentType } from "react";
 
-import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
-import * as TabsComponents from 'fumadocs-ui/components/tabs';
-import { getMDXComponents } from "@/mdx-components";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "@/components/layout/docs/page";
 import { source } from "@/lib/source";
-import { createRelativeLink } from "fumadocs-ui/mdx";
+import { getMDXComponents } from "@/mdx-components";
 import * as CarouselComponents from "@workspace/ui/components/carousel";
-import {
-  DocsBody,
-  DocsDescription,
-  DocsPage,
-  DocsTitle,
-} from "@/components/layout/docs/page";
-import { NamingFormatValidator } from "./naming-format-validator";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import * as TabsComponents from "fumadocs-ui/components/tabs";
+import { createRelativeLink } from "fumadocs-ui/mdx";
 import { NamingRegionMap } from "../maps/naming-region-map";
+import { NamingFormatValidator } from "./naming-format-validator";
 
-type ResolvedDocsPage = NonNullable<ReturnType<typeof source.getPage>>;
+type WikiPage = NonNullable<ReturnType<typeof source.getPage>>;
 
 type AppDocsPageProps = {
-  page: ResolvedDocsPage;
+  page: WikiPage;
 };
 
 type MdxPageData = {
@@ -50,7 +45,7 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             ...TabsComponents,
             ...CarouselComponents,
             NamingFormatValidator: NamingFormatValidator,
-            NamingRegionMap: NamingRegionMap
+            NamingRegionMap: NamingRegionMap,
           })}
         />
       </DocsBody>
