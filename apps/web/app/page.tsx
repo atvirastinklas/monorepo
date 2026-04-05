@@ -1,3 +1,4 @@
+import { DevicesShowcase } from "@/components/landing/devices-showcase";
 import { FeaturesSection } from "@/components/landing/features";
 import { Footer } from "@/components/landing/footer";
 import { HeroSection } from "@/components/landing/hero";
@@ -10,6 +11,7 @@ export default function Page() {
       <main className="flex-1">
         <HeroSection />
         <FeaturesSection />
+        <DevicesShowcase />
       </main>
       <Footer />
     </div>

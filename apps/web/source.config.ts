@@ -4,7 +4,7 @@ export const docs = defineDocs({
   dir: "content/docs",
   docs: {
     files: ["**/*.mdx", "!**/_dalys/**"],
-  }
+  },
 });
 
 export default defineConfig();

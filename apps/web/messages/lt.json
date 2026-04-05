@@ -42,6 +42,37 @@
       }
     }
   },
+  "DevicesSection": {
+    "heading": "Įrenginiai",
+    "buyFromBrand": "Pirkti pas {brand}",
+    "buyFromAliExpress": "Pirkti „AliExpress“",
+    "readMore": "Skaityti plačiau",
+    "groups": {
+      "companion": {
+        "title": "Telefonui įrenginys",
+        "subtitle": "Prijunk prie programėlės ir siųsk bei gauk žinutes per mazgą."
+      },
+      "repeaters": {
+        "title": "Autonominiai retransliatoriai",
+        "subtitle": "Išplėsk tinklo aprėptį įrengdamas retransliatorių aukštoje vietoje."
+      },
+      "standalone": {
+        "title": "Viskas viename įrenginiai",
+        "subtitle": "Veikia su Ripple programine įranga - telefonas nebūtinas."
+      }
+    }
+  },
+  "DevicePage": {
+    "brand": "Gamintojas",
+    "deviceType": "Įrenginio tipas",
+    "supportedMesh": "Tinklai",
+    "noPhoto": "Nuotrauka dar nepridėta",
+    "typeCompanion": "Telefonui skirtas įrenginys",
+    "typeRepeater": "Retransliatorius",
+    "typeStandalone": "Savarankiškas įrenginys",
+    "meshMeshcore": "MeshCore",
+    "meshMeshtastic": "Meshtastic"
+  },
   "Footer": {
     "tagLine": "Su ♥ iš Lietuvos bendruomenės",
     "links": {

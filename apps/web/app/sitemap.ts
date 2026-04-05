@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { allDevices } from "@/lib/devices";
 import { source } from "@/lib/source";
 
 /** Set `NEXT_PUBLIC_SITE_URL` to the canonical HTTPS origin (no trailing slash). */
@@ -26,6 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const page of source.getPages()) {
     entries.push({
       url: `${origin}${page.url}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+  }
+
+  for (const device of allDevices) {
+    entries.push({
+      url: `${origin}${device.url}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
