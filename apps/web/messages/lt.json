@@ -4,7 +4,8 @@
   },
   "Navbar": {
     "menu": {
-      "docs": "Žinynas"
+      "docs": "Žinynas",
+      "blog": "Blogas"
     },
     "github": "GitHub"
   },
@@ -77,6 +78,17 @@
     "typeStandalone": "Įrenginys su integruotu ekranu ir klaviatūra",
     "productKindDevelopmentKit": "DevKit",
     "productKindFinishedProduct": "Galutinis produktas"
+  },
+  "BlogPage": {
+    "listTitle": "Blogas",
+    "listDescription": "Naujienos, gidai ir bendruomenės įžvalgos apie atvirą tinklą.",
+    "empty": "Straipsnių dar nėra.",
+    "readingTime": "{minutes} min skaitymo",
+    "authors": "Autoriai",
+    "author": "Autorius",
+    "categories": "Rubrikos",
+    "tags": "Žymės",
+    "readMore": "Skaityti"
   },
   "Footer": {
     "tagLine": "Su ♥ iš Lietuvos bendruomenės",

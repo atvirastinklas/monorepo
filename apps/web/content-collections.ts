@@ -38,6 +38,40 @@ export const devices = defineCollection({
   },
 });
 
+function readingTimeMinutesFromContent(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.ceil(words / 200);
+  return Math.max(1, minutes);
+}
+
+export const blogPosts = defineCollection({
+  name: "blogPosts",
+  directory: "content/blogas",
+  include: "**/*.mdx",
+  schema: z.object({
+    content: z.string(),
+    title: z.string(),
+    description: z.string(),
+    datePublished: z.coerce.date(),
+    coverImage: z.string().optional(),
+    authors: z.array(z.string()),
+    tags: z.array(z.string()),
+    categories: z.array(z.string()),
+  }),
+  transform: async (document, context) => {
+    const segments = document._meta.path.split("/");
+    const slug = segments[segments.length - 1] ?? document._meta.path;
+
+    return {
+      ...document,
+      slug,
+      url: `/blogas/${slug}`,
+      readingTimeMinutes: readingTimeMinutesFromContent(document.content),
+      mdx: await compileMDX(context, document),
+    };
+  },
+});
+
 export default defineConfig({
-  content: [devices],
+  content: [devices, blogPosts],
 });

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { allBlogPosts } from "@/lib/blog";
 import { allDevices } from "@/lib/devices";
 import { source } from "@/lib/source";
 
@@ -22,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${origin}/blogas`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
   ];
 
   for (const page of source.getPages()) {
@@ -39,6 +46,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
+    });
+  }
+
+  for (const post of allBlogPosts) {
+    entries.push({
+      url: `${origin}${post.url}`,
+      lastModified: post.datePublished,
+      changeFrequency: "monthly",
+      priority: 0.75,
     });
   }
 

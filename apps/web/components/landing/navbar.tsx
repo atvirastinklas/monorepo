@@ -12,6 +12,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = [
     { href: "/zinynas", label: t("menu.docs") },
+    { href: "/blogas", label: t("menu.blog") },
   ];
 
   const toggleMobileMenu = () => {

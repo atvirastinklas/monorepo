@@ -1,0 +1,17 @@
+{
+  "authors": {
+    "zilvinas": {
+      "displayName": "Žilvinas"
+    }
+  },
+  "tags": {
+    "tinklas": {
+      "displayName": "Tinklas"
+    }
+  },
+  "categories": {
+    "naujienos": {
+      "displayName": "Naujienos"
+    }
+  }
+}
