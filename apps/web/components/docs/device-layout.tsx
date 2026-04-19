@@ -1,4 +1,4 @@
-import { RiBook3Line } from "@remixicon/react";
+import { RiBook3Line, RiNewsLine } from "@remixicon/react";
 import type { ReactNode } from "react";
 
 import { DocsLayout } from "@/components/layout/docs";
@@ -20,6 +20,7 @@ export async function DeviceDocsLayout({ children }: { children: ReactNode }) {
           on: "menu",
           active: "none",
         },
+        ...(options.links ?? []),
       ]}
       searchToggle={{
         ...options.searchToggle,
