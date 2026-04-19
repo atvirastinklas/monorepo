@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { Button } from "@workspace/ui/components/button";
+import { ThemeToggle } from "../layout/theme-toggle";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -20,6 +21,9 @@ export async function Footer() {
               <Link href={item.href}>{item.label}</Link>
             </Button>
           ))}
+        </div>
+        <div>
+          <ThemeToggle className="p-0" />
         </div>
       </div>
     </footer>
