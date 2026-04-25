@@ -27,17 +27,17 @@ export async function AppBlogPostPage({
 
   return (
     <DocsPage breadcrumb={{ enabled: false }} footer={{ enabled: false }} className="max-w-3xl">
-      <DocsTitle>{post.title}</DocsTitle>
-      <DocsDescription className="mb-0">{post.description}</DocsDescription>
-
       <div className="flex flex-col gap-4 text-sm text-muted-foreground">
-        <p className="mb-4">
+        <p>
           {[
             formatPublishedDate(post.datePublished, locale),
             ...authors.map((author) => author.displayName),
             t("readingTime", { minutes: post.readingTimeMinutes })
           ].join(" · ")}
         </p>
+        <DocsTitle className="text-black dark:text-white">{post.title}</DocsTitle>
+        {/* <DocsDescription className="mb-0">{post.description}</DocsDescription> */}
+
 
         {post.coverImage ? (
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border">
