@@ -130,9 +130,9 @@ export function DocsLayout({
                 </SidebarCollapseTrigger>
               )}
             </div>
+            {tabs.length > 0 && tabMode === 'auto' && <SidebarTabsDropdown options={tabs} />}
             {searchToggle.enabled !== false &&
               (searchToggle.components?.lg ?? <LargeSearchToggle hideIfDisabled />)}
-            {tabs.length > 0 && tabMode === 'auto' && <SidebarTabsDropdown options={tabs} />}
             {banner}
           </div>
           {viewport}

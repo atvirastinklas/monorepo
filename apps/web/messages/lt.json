@@ -5,6 +5,7 @@
   "Navbar": {
     "menu": {
       "docs": "Žinynas",
+      "device-catalog": "Įrenginių katalogas",
       "blog": "Blogas"
     },
     "github": "GitHub"
