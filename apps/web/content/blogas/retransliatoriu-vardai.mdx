@@ -1,0 +1,69 @@
+---
+title: Retransliatorių vardų sistema
+description: "Vieninga MeshCore LT retransliatorių vardų sistema: kodėl jos reikia, kaip sudaromi vardai ir kaip jie padeda suprasti tinklo kelią."
+datePublished: 2026-04-26
+authors:
+  - zilvinas
+tags:
+  - tinklas
+categories: []
+coverImage: /assets/blog/retransliatoriu-vardai/cover.png
+---
+
+### Sveiki, MeshCore'ininkai!
+
+Vos prieš savaitę, balandžio 19 d. atšventėme pirmąjį MeshCore LT tinklo gimtadienį, o šiandien metas pristatyti mūsų bendruomenei vieningą retransliatorių (kartotuvų) vardų sistemą. Kodėl to reikia, rasite Blog įraše, kuriame pasirinkau naudoti žodį „kartotuvas“ (Repeater) dėl jo trumpumo. O tiems, kuriems prie širdies trumpinys [TL;DR], siūlau šokti tiesiai į [vardo formato aprašymą](https://atvirastinklas.lt/zinynas/meshcore/retransliatorius/vardai).
+
+## Kodėl?
+
+Žinoma, pirmasis klausimas yra ir visuomet turėtų būti „Kodėl?“. Kai prieš metus Vilniuje beveik visą pusmetį buvo vienintelis MeshCore žemėlapyje pažymėtas kartotuvas, jį tiesiog pavadinau „LY1ZI R1“. Esu radijo mėgėjas, turiu savo šaukinį, todėl šaukinio panaudojimas atrodė logiškas pasirinkimas. Pavadinimas yra trumpas ir aiškus, leidžia iš karto suprasti kam jis priklauso. Neužilgo atsirado „LY1ZI R2“, o dar vėliau R3. Kuomet kartotuvų radosi vis daugiau, ne visi kurie juos įrengė buvo radijo mėgėjai, jie naudojo savo sugalvotus vardus. Žemėlapyje atsirado „Hiroo R1“ ir R2, tada „Seskai R1“, vėliau sekė „Tverečiaus R1“, „LY7MS R1“, „Treniotos R1“ ir t.t. Žodžiu, kartotuvų daugėjo, MeshCore žemėlapis pildėsi, Trace Path keliai darėsi vis ilgesni ir visa tai panašėjo į lietuvišką mišrainę :D. Ne vien mano galvoje, bet ir kitų galvose sunkiai sekėsi sujungti kartotuvo vietą su jo vardu, reikėjo nuolatos atsidaryti žemėlapį ir pasitikrinti kur yra vienas ar kitas kartotuvas, negalėjai lengvai sužinoti kokiu keliu žinutė tave pasiekė. Tad prasidėjo sprendimo paieškos, bandyti vieni ir kiti variantai, bet rezultato nebuvo. Reikėjo plano kuriuo galėtume konstruktyviai judėti į priekį. Taip atsirado reikalavimai.
+
+## Reikalavimai
+
+Reikėjo kartotuvų vardų sistemos, kur vardas būtų:
+
+- Unikalus
+- Trumpas ir informatyvus
+- Aiškiai nurodytų kartotuvo vietą
+- Lengvai skaitomas žmogui
+- Nusakytų antenos spinduliavimo kryptį
+
+## Rezultatas
+
+Po ilgų diskusijų, svarstymų, ginčų ir paieškų gimė šis kartotuvo vardo formatas:
+
+**`LT-{Kodas} {Mikrorajonas|Vietovė} {ID} [Kryptis]`**
+
+Vardą sudaro prefikas `LT-{Kodas}`, tada `Vietovės pavadinimas` ir sufiksas `{ID} [Kryptis]`. Kiekvienam laukui yra pagrindimas, kuris paremtas išsikeltu reikalavimu.
+
+## Pagrindimas
+
+### Unikalumas
+
+Tai vienas iš sunkiausiai pasiekiamų tikslų, ypač jeigu jį reikia suderinti su kitais reikalavimais. Stebėdami MeshCore vystymąsi kitose šalyse, pastebėjome, kad tinklo plėtra beveik visuomet prasideda miestuose ir tik po to plečiasi į užmiestį. Todėl kartotuvų tankumas visuomet yra ir bus didesnis miestuose, Trace Path keliai natūraliai visuomet bus ilgesni ir tarpinių mazgų (Hops) bus daugiau. Reikalingas vardas, kuris iš karto vizualiai signalizuotų ar kartotuvas kelyje yra mieste, ar už jo ribų. Todėl buvo pasirinktas esamas Lietuvos administracinis suskirtymas į apskritis. Jų turime 10 kartu su jų centrais - didžiausiais apskričių miestais. Laimei, Lietuvos informacinėje erdvėje jau egzistuoja apskričių kodavimas vienos raidės principu, o apskrities ir miesto atskyrimui naudojamos dvi raidės: **M** - miesto teritorija, **A** - likusi apskrities teritoriją už miesto ribų.
+
+Tolimesniam karototuvo vietos detalizavimui panaudota Lietuvos administracinio suskirtymo į seniūnijas schema, kuri leidžia pakankamai tiksliai nusakyti kartotuvo vietą, o seniūnijos pavadinimas dažniausiai yra lengvai atpažįstamas žmogui nes sutampa tiek su didžiųjų miestų mikrorajono pavadinimu, tiek su gyvenvietės pavadinimu už miesto ribų. Kartu derinat seniūnijos pavadinimą su apskričių ir jų centrų kodu, gaunamas beveik tobulai unikalus kartotuvo vardas tiek miesto, tiek apskrities, tiek ir Lietuvos mastu.
+
+Tankiuose miestų Mesh tinkluose, viename mikrorajone neišvengiamai atsiranda daugiau kartotuvų, todėl vardas papildytas sufiksu - kartotuvo **ID**, kas yra jo viešo rakto (Public Key) pirmieji du simboliai.
+
+**LT** (prefiko pradžia) atsirado visai neseniai, kuomet iš Latvijos pradėjome gauti jų kartotuvų anonsus (Advert). Tada supratome kodėl kitose šalyse, tokiose kaip Nyderlandai, irgi naudojamas šalies prefiksas. Esant ypatingoms radijo bangų skildimo sąlygoms būtų žymiai lengviau atpažinti kitų šalių kartotuvus, nustatyti kelią kuriuo anonsas ar žinutė mus pasiekė. Kai kurių mūsų kolegų patirtis gaudyti MeshCore žinutes skrendant lėktuvais rodo, kad MeshCore duomenų paketai gali sklisti ne tik horizonaliai ir pasiekti gretimas šalis, bet taip pat vertikaliai ir būti priimti lėktuvuose, o ateityje gal net žemos orbitos palydovuose. Matyt, nėra didesnio džiaugsmo, kaip priimti žinutę iš Lietuvos būnant nuo toli nuo jos ir dar su **LT** prefiksu.
+
+### Informatyvumas
+
+Trumpas ir informatyvus vardas yra svarbu.  Tačiau pasirinkimas nebuvo lengvas. Reikėjo atsižvelgti į esamus kartotuvų vardų ilgio apribojimus - vardas gali būti sudarytas tik iš 31 ASCII simbolio. MeshCore programėlėje rodomi tik 23 simboliai. Jeigu vietovės ar seniūnijos pavadinime yra lietuviškų raidžių, ilgio apribojimas darosi dar skausmingesnis. Todėl vietovės pavadinimas (seniūnija, mikrorajonas) turi būti trumpas ir lakoniškas. Vietoje dviejų žodžių reiktų naudoti vieną, o kitą trumpinti, pvz. vietoje „Šiaurės miestelis“, naudoti „Šiaurės mstl.“, o vietoje „Naujoji Akmenė“, naudoti „N. Akmenė“. Palikta galimybė išimtinais atvejais naudoti žymių vietų (Landmark) pavadinimus. Pvz. jei kartotuvas yra daugeliui Lietuvoje žinomoje vietoje arba labai labai arti jos, pvz. „Kryžkalnis“, „Europos cent.“, „Trakų pilis“, „IX fortas“.
+
+### Aiški kartotuvo vieta
+
+Vietovė yra lengvai perskaitoma ir atpažįstama. Nereikia kas kartą atsidaryti žemėlapio, kad suprasti kur yra kartotuvas. Užtenka užmesti akį į gautą žinutės kelią ir iš tarpinių kartotovų vardų galima lengvai sukurti mentalinį žinutės kelio žemėlapį.
+
+### Lengvai skaitomas žmogui
+
+Vardo formatas sudarytas iš kelių dalių, kurias skiria tarpas. Dalys atskirtos tarpu yra lengviau suvokiamos ir lengviau perskaitomos. Vizualiai toks pavadinimas atrodo švaresnis, mažiau perkrautas nereikalinga informacija. **Didžiosios prefikso raidės** iš vienos pusės ir kartotuvo **ID** baitas užrašytas naudojant **didžiąsias raides** iš kitos pusės aiškiai įrėmina ir išskiria vietovės pavadinimą. 
+
+### Antenos spinduliavimo kryptis
+
+Kartotuvo antenos spinduliavimo krypties poreikis atsirado grynai iš praktinės patirties, kuomet žinutės strigdavo vos už kelių šimtų metrų nuo artimiausio kartotuvo. Pasirodė, kad daugelis kartotuvų, ypač tų, kurie gyvena ant palangės bute, turi stipriai išreikštą efektyvaus spinduliavimo kryptį. Jie gerai spinduliuoja pro atvirą langą viena kryptimi, bet labai silpnai prasimuša per kelias gelžbetonines buto sienas į priešingą pusę. Spinduliavimo krypties žinojimas gali stipriai padidinti žinutės pristatymo ar gavimo sėkmę, o plečiant tinklą ir įrengiant naujus kartotuvus padėti parinkti optimalią jam vietą. Ši kartotuvo vardo dalis nėra privaloma. Jeigu nėra tiksliai žinoma kaip spinduliuoja kartotuvo antena, geriau jos visai nenurodyti. Krypties nereikia nurodyti jeigu naudojamos visakryptės (Omnidirectional) antenos aukštose ir atvirose į visas puses vietose. Kodavimui naudojami standartiniai angliški krypčių sutrumpinimai: **N, NE, E, SE, S, SW, W, NW**.
+
+## Šalutinis efektas
+
+Suprantama, kad ši pasiūlyta vardų sistemą yra tik rekomendacinio pobūdžio. Ypač atvirame tinkle. Tačiau tikimės, kad ji prigis, nes yra paprasta, aiški ir pagrįsta. Vieninga vardų sistema leidžia ne tik mums patiems lengviau naudotis tinklu, bet tuo pačiu skleidžia gerą žinią apie vieningą, koordinuotą ir stiprią mūsų **MeshCore LT** bendruomenę visiems kitiems tinklo naudotojams Lietuvoje ir užsienyje.
