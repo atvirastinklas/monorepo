@@ -25,7 +25,7 @@ export function BlogPostCard({
     <li className={cn("list-none", className)}>
       <Link
         href={post.url}
-        className="group block border-b py-8 first:pt-0 transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 -mx-2 rounded-lg px-2 sm:-mx-3 sm:px-3"
+        className="group block border-b py-4 transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 -mx-2 rounded-lg px-2 sm:-mx-3 sm:px-3"
       >
         <div className="flex max-w-3xl flex-col gap-2">
           <h2 className="text-xl font-semibold tracking-tight text-balance transition-colors group-hover:text-primary md:text-2xl">
