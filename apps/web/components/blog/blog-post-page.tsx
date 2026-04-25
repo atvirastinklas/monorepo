@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import * as CarouselComponents from "@workspace/ui/components/carousel";
 import * as TabsComponents from "fumadocs-ui/components/tabs";
 
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "@/components/layout/docs/page";
+import { DocsBody, DocsPage, DocsTitle } from "@/components/layout/docs/page";
 import type { BlogPostDocument } from "@/lib/blog";
 import { resolveAuthors, resolveCategories, resolveTags } from "@/lib/blog";
 import { getMDXComponents } from "@/mdx-components";
