@@ -12,6 +12,15 @@ const withMDX = createMDX();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/map"],
+  async redirects() {
+    return [
+      {
+        source: "/zinynas/meshcore/retransliatorius/pavadinimai",
+        destination: "/zinynas/meshcore/retransliatorius/vardai",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withContentCollections(withMDX(withNextIntl(nextConfig)));

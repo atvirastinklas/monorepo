@@ -151,7 +151,7 @@ function validateRepeaterName(input: string): ValidationResult {
     return {
       formatMessage: (
         <>
-          Įveskite pavadinimą formatu <code className="font-mono bg-muted/70 px-1.5 py-0.5 rounded-md">{namingFormat}</code>.
+          Įveskite vardą formatu <code className="font-mono bg-muted/70 px-1.5 py-0.5 rounded-md">{namingFormat}</code>.
         </>
       ),
       isValid: false,
@@ -229,7 +229,7 @@ function validateRepeaterName(input: string): ValidationResult {
     parts.place = {
       ...parts.place,
       state: "valid",
-      description: "Tinkamas vietovės pavadinimas.",
+      description: "Tinkama vietovės dalis.",
       details: undefined,
     };
   }
@@ -299,10 +299,10 @@ function validateRepeaterName(input: string): ValidationResult {
     formatMessage = "Trūksta vienos ar kelių privalomų dalių.";
   } else if (isValid) {
     formatMessage = hasNormalizationChange
-      ? "Pavadinimas atitinka formatą po normalizavimo."
-      : "Pavadinimas atitinka rekomenduojamą formatą.";
+      ? "Vardas atitinka sistemos formatą po normalizavimo."
+      : "Vardas atitinka sistemos formatą.";
     formatDetails = hasNormalizationChange
-      ? "Suvienodintas kodas, ID ir kryptis, taip pat sutvarkyti tarpai tarp dalių."
+      ? "Suvienodintas šalies kodas, vietovės kodas, ID ir kryptis, taip pat sutvarkyti tarpai tarp dalių."
       : undefined;
   }
 
@@ -389,7 +389,7 @@ export function NamingFormatValidator() {
     <div className="not-prose mb-8 rounded-2xl border bg-card/70 p-5 shadow-sm">
       <div className="flex flex-col gap-3">
         <label className="text-sm font-bold" htmlFor="naming-format-validator">
-          Retransliatoriaus pavadinimas
+          Retransliatoriaus vardas
         </label>
         <input
           id="naming-format-validator"
