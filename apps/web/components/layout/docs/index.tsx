@@ -15,7 +15,6 @@ import {
 } from './sidebar';
 import { type BaseLayoutProps, renderTitleNav, useLinkItems } from '../shared';
 import { LinkItem } from '../link-item';
-import { LanguageToggle, LanguageToggleText } from '../language-toggle';
 import { LayoutBody, LayoutContextProvider, LayoutHeader, LayoutTabs } from './client';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { ThemeToggle } from '../theme-toggle';
