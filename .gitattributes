@@ -1,0 +1,4 @@
+# Exclude generated artifacts from GitHub Linguist language statistics.
+pnpm-lock.yaml linguist-generated=true
+apps/web/next-env.d.ts linguist-generated=true
+apps/web/cloudflare-env.d.ts linguist-generated=true
