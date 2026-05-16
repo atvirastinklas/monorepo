@@ -3,4 +3,28 @@ title: Retransliatoriai
 description: MeshCore tinklo retransliatoriai
 ---
 
-_Puslapis ruošiamas._
+Retransliatorius (kitaip vadinamas kartotuvas) yra įrenginys, kurio pagrindė funkcija retransliuoti MeshCore tinklo paketus - praplėsti tinklo aprėptį.
+
+## Programinės įrangos konfigūravimas
+
+<Callout type="warning">
+Jeigu jūsų retransliatorius neturi RTC arba GPS modulio, galite susinchronizuoti laiką `clock sync` komanda. Kitų atveju retransliatorius turės neteisingą laiką (pvz.: `2024-01-01 00:00:00`).
+</Callout>
+
+| Nustatymas | Reikšmė | Aprašymas |
+| ---------- | ------- | --------- |
+| Vardas (angl. _Name_) | * | [Rekomenduojama stacionariems retransliatoriams vardų sistema](./vardai) |
+| Viešas raktas (angl. _Public Key_) | * | Įsitikinkite, kad jūsų viešo rakto pirmieji simboliai nesikerta su kitais retransliatoriais  |
+| Maršruto kodavimo režimas (angl. _Path hash mode_) | `1` | Naudojamas 1-baito (64 maksimaliai šuolių) maršruto kodavimo režimas. Nustatomas per `set path.hash.mode 1` komanda. |
+| Eterio užimtumo ciklas (angl. _Duty cycle_) | 10% | Maksimalus leistinas transliavimo dažnumas. Nustatomas per `set dutycycle 10` komanda. |
+| Maršruto ciklo aptikimas (angl. _Loop detection_) | `minimal` | Įjungia maršruto ciklo aptikimą. Nustatomas per `set loop.detect minimal` komanda. |
+| Tinkle anonsų intervalas (angl. _Flood Advert interval_) | `30` _valandų_ | Anonsų intervalas. Nustatomas per `set flood.advert.interval 30` komanda. |
+
+| Radijo nustatymai | Reikšmė | Aprašymas |
+| ---------- | ------- | --------- |
+| Profilis | EU/UK (Narrow), Switzerland | |
+| Dažnis (angl. _Frequency_) | 	869.618 MHz | |
+| Juostos plotis (angl. _Bandwidth_) | 62.5 kHz | |
+| Sklaidos koeficientas (angl. _Spreading Factor_) | 8 | |
+| Kodavimo sparta (angl. _Coding Rate_) | 8 | |
+
