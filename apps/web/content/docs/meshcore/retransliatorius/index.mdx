@@ -8,7 +8,7 @@ Retransliatorius (kitaip vadinamas kartotuvas) yra įrenginys, kurio pagrindė f
 ## Programinės įrangos konfigūravimas
 
 <Callout type="warning">
-Jeigu jūsų retransliatorius neturi RTC arba GPS modulio, galite susinchronizuoti laiką `clock sync` komanda. Kitų atveju retransliatorius turės neteisingą laiką (pvz.: `2024-01-01 00:00:00`).
+Jeigu jūsų retransliatorius neturi RTC arba GPS modulio, galite susinchronizuoti laiką `clock sync` komanda. Kitų atveju retransliatorius turės neteisingą laiką (pvz.: `2024-01-01 00:00:00`) ir kiti tinklo dalyviai gali ignoruoti jūsų paketus dėl neteisingo laiko.
 </Callout>
 
 | Nustatymas | Reikšmė | Aprašymas |
@@ -19,6 +19,7 @@ Jeigu jūsų retransliatorius neturi RTC arba GPS modulio, galite susinchronizuo
 | Eterio užimtumas (angl. _Duty cycle_) | `10`% | Maksimalus leistinas transliavimo dažnumas. Nustatomas per `set dutycycle 10` komanda. |
 | Maršruto ciklo aptikimas (angl. _Loop detection_) | `minimal` | Įjungia maršruto ciklo aptikimą. Nustatomas per `set loop.detect minimal` komanda. |
 | Tinkle anonsų intervalas (angl. _Flood Advert interval_) | `30` _valandų_ | Anonsų intervalas. Nustatomas per `set flood.advert.interval 30` komanda. |
+| Tiesioginis anonsų intervalas (angl. _Zero hop Advert interval_) | `4` _valandos_ | Tiesioginio anonso intervalas. Nustatomas per `set advert.interval 4` komanda. |
 
 | Radijo nustatymai | Reikšmė | Aprašymas |
 | ---------- | ------- | --------- |
