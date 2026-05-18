@@ -19,6 +19,7 @@ export type MeshcoreRepeaterListItem = {
 
 type MeshcoreRepeatersClientProps = {
   repeaters: MeshcoreRepeaterListItem[];
+  showTitle?: boolean;
   recordedAtMax: number | null;
 };
 
@@ -32,6 +33,7 @@ const vilniusDateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 
 export function MeshcoreRepeatersClient({
   repeaters,
+  showTitle = true,
   recordedAtMax,
 }: MeshcoreRepeatersClientProps) {
   const [region, setRegion] = useState<RegionFilter>("all");
@@ -60,7 +62,7 @@ export function MeshcoreRepeatersClient({
     <section className="not-prose my-6 rounded-xl border bg-fd-card text-fd-card-foreground">
       <div className="space-y-4 border-b p-4">
         <div>
-          <h3 className="font-semibold text-lg">Retransliatoriai tinkle</h3>
+          {showTitle ? <h3 className="font-semibold text-lg">Retransliatoriai tinkle</h3> : null}
           <p className="text-fd-muted-foreground text-sm">
             Duomenys paimti iš MeshMapper sistemos ir atnaujinami kas 30 minučių.
           </p>
