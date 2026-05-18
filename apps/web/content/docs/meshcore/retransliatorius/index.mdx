@@ -10,11 +10,16 @@ Retransliatorius (kitaip vadinamas kartotuvas) yra įrenginys, kurio pagrindė f
 <Callout type="warning">
 Jeigu jūsų retransliatorius neturi RTC arba GPS modulio, galite susinchronizuoti laiką `clock sync` komanda. Kitų atveju retransliatorius turės neteisingą laiką (pvz.: `2024-01-01 00:00:00`) ir kiti tinklo dalyviai gali ignoruoti jūsų paketus dėl neteisingo laiko.
 </Callout>
+<Callout type="warning">
+Po retransliatoriaus konfigūravimo, išsisaugokite: privatų/viešą raktus ir administratoriaus slaptažodį saugioje vietoje (pvz. slaptažodžių tvarkyklėje).
+</Callout>
 
 | Nustatymas | Reikšmė | Aprašymas |
 | ---------- | ------- | --------- |
 | Vardas (angl. _Name_) | * | [Rekomenduojama stacionariems retransliatoriams vardų sistema](./retransliatorius/vardai) |
 | Viešas raktas (angl. _Public Key_) | * | Įsitikinkite, kad jūsų viešo rakto pirmieji simboliai nesikerta su [kitais retransliatoriais](#retransliatoriai-tinkle)  |
+| Admin slaptažodis (angl. _Admin password_) | * | Nustatomas per `password <slaptažodis>` komanda.  |
+| Svečio slaptažodis (angl. _Guest password_) | _Palikite tuščią_ | Nustatomas per `set guest.password <slaptažodis>` komanda. Tuščias slaptažodis leidžia minimalią prieiga kitiems tinklo dalyviams. |
 | Maršruto kodavimo režimas (angl. _Path hash mode_) | `1` | Naudojamas 2-baitų (32 maksimaliai šuolių) maršruto kodavimo režimas. Nustatomas per `set path.hash.mode 1` komanda. |
 | Eterio užimtumas (angl. _Duty cycle_) | `10`% | Nustatomas per `set dutycycle 10` komanda. Privaloma naudoti ES: 869,525 MHz dažnyje įjunkite 10 % darbo ciklą, kad atitiktumėte Europos trumpojo nuotolio įrenginių (SRD) reglamentavimą. |
 | Maršruto ciklo aptikimas (angl. _Loop detection_) | `minimal` | Įjungia maršruto ciklo aptikimą. Nustatomas per `set loop.detect minimal` komanda. |
