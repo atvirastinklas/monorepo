@@ -36,8 +36,10 @@ export function MeshcoreRepeatersClient({
 }: MeshcoreRepeatersClientProps) {
   const [region, setRegion] = useState<RegionFilter>("all");
   const [publicKeyPrefix, setPublicKeyPrefix] = useState("");
+  const [nameQuery, setNameQuery] = useState("");
 
   const normalizedPublicKeyPrefix = normalizePublicKeyPrefix(publicKeyPrefix);
+  const normalizedNameQuery = normalizeSearchText(nameQuery);
   const filteredRepeaters = useMemo(
     () =>
       repeaters.filter((repeater) => {
@@ -45,10 +47,13 @@ export function MeshcoreRepeatersClient({
         const matchesPublicKey =
           normalizedPublicKeyPrefix.length === 0 ||
           repeater.hexId.toUpperCase().startsWith(normalizedPublicKeyPrefix);
+        const matchesName =
+          normalizedNameQuery.length === 0 ||
+          normalizeSearchText(repeater.name).includes(normalizedNameQuery);
 
-        return matchesRegion && matchesPublicKey;
+        return matchesRegion && matchesPublicKey && matchesName;
       }),
-    [normalizedPublicKeyPrefix, region, repeaters],
+    [normalizedNameQuery, normalizedPublicKeyPrefix, region, repeaters],
   );
 
   return (
@@ -61,19 +66,21 @@ export function MeshcoreRepeatersClient({
           </p>
         </div>
         <MeshcoreRepeatersFilters
+          nameQuery={nameQuery}
           publicKeyPrefix={publicKeyPrefix}
           region={region}
+          onNameQueryChange={setNameQuery}
           onPublicKeyPrefixChange={setPublicKeyPrefix}
           onRegionChange={setRegion}
         />
       </div>
+      <MeshcoreRepeatersTable repeaters={filteredRepeaters} />
       <div className="flex flex-col gap-2 border-b p-4 text-fd-muted-foreground text-sm sm:flex-row sm:items-center sm:justify-between">
         <span>
           Rodoma {filteredRepeaters.length} iš {repeaters.length} retransliatorių.
         </span>
         <span>Atnaujinta: {formatUnixSeconds(recordedAtMax)}</span>
       </div>
-      <MeshcoreRepeatersTable repeaters={filteredRepeaters} />
     </section>
   );
 }
@@ -81,19 +88,23 @@ export function MeshcoreRepeatersClient({
 type MeshcoreRepeatersFiltersProps = {
   region: RegionFilter;
   publicKeyPrefix: string;
+  nameQuery: string;
   onRegionChange: (region: RegionFilter) => void;
   onPublicKeyPrefixChange: (publicKeyPrefix: string) => void;
+  onNameQueryChange: (nameQuery: string) => void;
 };
 
 function MeshcoreRepeatersFilters({
   region,
   publicKeyPrefix,
+  nameQuery,
   onRegionChange,
   onPublicKeyPrefixChange,
+  onNameQueryChange,
 }: MeshcoreRepeatersFiltersProps) {
   return (
     <form
-      className="grid gap-3 sm:grid-cols-[minmax(8rem,12rem)_minmax(12rem,1fr)]"
+      className="grid gap-3 sm:grid-cols-[minmax(8rem,12rem)_minmax(12rem,1fr)_minmax(12rem,1fr)]"
       onSubmit={(event) => event.preventDefault()}
     >
       <label className="space-y-1.5">
@@ -110,6 +121,16 @@ function MeshcoreRepeatersFilters({
             </option>
           ))}
         </select>
+      </label>
+      <label className="space-y-1.5">
+        <span className="font-medium text-sm">Vardo dalis</span>
+        <input
+          className="w-full rounded-md border bg-fd-background px-3 py-2 text-sm"
+          inputMode="text"
+          placeholder="Pvz. LY7MS"
+          value={nameQuery}
+          onChange={(event) => onNameQueryChange(event.target.value)}
+        />
       </label>
       <label className="space-y-1.5">
         <span className="font-medium text-sm">Viešo rakto pradžia</span>
@@ -151,7 +172,10 @@ function MeshcoreRepeatersTable({ repeaters }: { repeaters: MeshcoreRepeaterList
               <td className="px-4 py-3 font-medium">{repeater.name}</td>
               <td className="px-4 py-3">{repeater.iata}</td>
               <td className="px-4 py-3">
-                <code className="rounded bg-fd-muted px-1.5 py-0.5 font-mono text-xs" title={repeater.hexId}>
+                <code
+                  className="rounded bg-fd-muted px-1.5 py-0.5 font-mono text-xs"
+                  title={repeater.hexId}
+                >
                   {shortenPublicKey(repeater.hexId)}
                 </code>
               </td>
@@ -166,6 +190,10 @@ function MeshcoreRepeatersTable({ repeaters }: { repeaters: MeshcoreRepeaterList
 
 function normalizePublicKeyPrefix(value: string) {
   return value.replace(/\s+/g, "").toUpperCase();
+}
+
+function normalizeSearchText(value: string) {
+  return value.trim().toLocaleLowerCase("lt-LT");
 }
 
 function shortenPublicKey(value: string) {
