@@ -1,0 +1,11 @@
+export const MESHCORE_IATA_REGIONS = ["VNO", "KUN", "SQQ"] as const;
+
+export type MeshcoreIataRegion = (typeof MESHCORE_IATA_REGIONS)[number];
+
+export function isMeshcoreIataRegion(value: string): value is MeshcoreIataRegion {
+  return MESHCORE_IATA_REGIONS.includes(value as MeshcoreIataRegion);
+}
+
+export function getMeshcoreRepeatersUrl(iata: MeshcoreIataRegion) {
+  return `https://${iata.toLowerCase()}.meshmapper.net/get_repeaters.php`;
+}
