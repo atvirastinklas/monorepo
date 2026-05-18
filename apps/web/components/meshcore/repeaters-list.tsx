@@ -5,7 +5,11 @@ import { listMeshcoreRepeaters } from "@/lib/server/meshcore/repeaters";
 
 import { MeshcoreRepeatersClient, type MeshcoreRepeaterListItem } from "./repeaters-list-client";
 
-export async function MeshcoreRepeatersList() {
+interface Props {
+  showTitle?: boolean;
+}
+
+export async function MeshcoreRepeatersList(props: Props) {
   noStore();
 
   const { env } = getCloudflareContext();
@@ -25,5 +29,5 @@ export async function MeshcoreRepeatersList() {
     }),
   );
 
-  return <MeshcoreRepeatersClient repeaters={repeaters} recordedAtMax={result.recordedAtMax} />;
+  return <MeshcoreRepeatersClient repeaters={repeaters} recordedAtMax={result.recordedAtMax} showTitle={props.showTitle} />;
 }
