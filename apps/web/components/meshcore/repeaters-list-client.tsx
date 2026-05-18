@@ -129,7 +129,7 @@ function MeshcoreRepeatersFilters({
         <input
           className="w-full rounded-md border bg-fd-background px-3 py-2 text-sm"
           inputMode="text"
-          placeholder="Pvz. LY7MS"
+          placeholder="Pvz. LT-VM"
           value={nameQuery}
           onChange={(event) => onNameQueryChange(event.target.value)}
         />
