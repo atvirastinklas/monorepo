@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { ComponentProps, ComponentType } from "react";
 
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "@/components/layout/docs/page";
+import { MeshcoreRepeatersList } from "@/components/meshcore/repeaters-list";
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import * as CarouselComponents from "@workspace/ui/components/carousel";
@@ -46,6 +47,7 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             ...CarouselComponents,
             NamingFormatValidator: NamingFormatValidator,
             NamingRegionMap: NamingRegionMap,
+            MeshcoreRepeatersList: MeshcoreRepeatersList,
           })}
         />
       </DocsBody>
