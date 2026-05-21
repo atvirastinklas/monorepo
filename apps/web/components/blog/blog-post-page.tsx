@@ -5,8 +5,10 @@ import * as CarouselComponents from "@workspace/ui/components/carousel";
 import * as TabsComponents from "fumadocs-ui/components/tabs";
 
 import { DocsBody, DocsPage, DocsTitle } from "@/components/layout/docs/page";
+import { buttonVariants } from "@/components/ui/button";
 import type { BlogPostDocument } from "@/lib/blog";
 import { resolveAuthors, resolveCategories, resolveTags } from "@/lib/blog";
+import { cn } from "@/lib/cn";
 import { getMDXComponents } from "@/mdx-components";
 
 function formatPublishedDate(date: Date, locale: string) {
@@ -63,6 +65,20 @@ export async function AppBlogPostPage({
           })}
         />
       </DocsBody>
+
+      <section className="my-8 rounded-xl border bg-muted/30 p-6 text-center">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          {t("communityCta.heading")}
+        </h2>
+        <a
+          href="https://social.atvirastinklas.lt"
+          target="_blank"
+          rel="noreferrer noopener"
+          className={cn(buttonVariants({ variant: "primary" }), "mt-4 px-4")}
+        >
+          {t("communityCta.telegramButton")}
+        </a>
+      </section>
 
       <div className="flex flex-row gap-4 border-t pt-4">
         {categories.length > 0 ? (

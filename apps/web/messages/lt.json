@@ -89,7 +89,11 @@
     "author": "Autorius",
     "categories": "Rubrikos",
     "tags": "Žymės",
-    "readMore": "Skaityti"
+    "readMore": "Skaityti",
+    "communityCta": {
+      "heading": "Prisijunk prie MeshCore bendruomenės!",
+      "telegramButton": "Telegram grupė"
+    }
   },
   "Footer": {
     "tagLine": "Su ♥ iš Lietuvos bendruomenės",
