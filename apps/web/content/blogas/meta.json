@@ -1,6 +1,6 @@
 {
   "authors": {
-    "zilvinas": {
+    "žilvinas": {
       "displayName": "Žilvinas"
     }
   },
@@ -12,6 +12,9 @@
   "categories": {
     "naujienos": {
       "displayName": "Naujienos"
+    },
+    "įranga": {
+      "displayName": "Įranga"
     }
   }
 }
