@@ -13,9 +13,9 @@ coverTitle: Kartotuvas su įšorine BlueTooth antena.
 
 Šiandien viename savo R atnaujinau FW į v1.16.0. Kartotuve nRF MCU. Galima atnaujinti prisijungus per USB-C kabelį, bet galima ir per Bluetooth OTA (Over-the-Air). Nors kartotuvą ant stogo galiu nesunkiai pasiekti, atidaryti dėžutę ir prijungti USB kablelį, bet paprastai renkuosi BT OTA variantą. Šį kartą bandžiau iš toliau. Atstumas nuo mano telefono iki R apie 15 m. Nėra LOS (Line-of-Sight), nes jį užstoja viena 50 cm storio mūro siena.
 
-Prisijungiu prie R iš MC App. Nueinu į Command Line ir paleidžiu `start ota`. WiFiman programėlėje pasitikrinu BT signalo lygį iš kartotuvo - raudonuoja -80 dBm 😯. Rizikuoju.
+Prisijungiu prie R iš MC App. Nueinu į **Command Line** ir paleidžiu `start ota`. **WiFiman** programėlėje pasitikrinu BT signalo lygį iš kartotuvo - raudonuoja ties -80 dBm 😯. Rizikuoju.
 
-Pasileidžiu Nord Semiconductor programėlę DFU, pasirenku parsisiųstą naujausią FW Zip failą, programėlės nustatymuose pasitikrinu ar nuimta Request High MTU varnelė, ir paleidžiu Update. Po keletos sekundžių prasideda atnaujinimo procesas. Stebiu kaip bėga eigos liniuotė ir didėja procentai. Greitis apie 9 kB/s. Užtrunka apie 1 min ir nauja FW versija jau kartotuve. 😀
+Pasileidžiu Nord Semiconductor programėlę **DFU**, pasirenku parsisiųstą naujausią FW zip failą, programėlės nustatymuose pasitikrinu ar nuimta **Request High MTU** varnelė, ir paleidžiu **Update**. Po keletos sekundžių prasideda atnaujinimo procesas. Stebiu kaip bėga eigos liniuotė ir didėja procentai. Greitis apie 9 kB/s. Užtrunka apie 1 min ir nauja FW versija jau kartotuve. 😀
 
 <img
   src="/assets/blog/ota-irangos-atnaujinimas/dfu-ota-sekmingai.jpg"
@@ -25,18 +25,18 @@ Pasileidžiu Nord Semiconductor programėlę DFU, pasirenku parsisiųstą naujau
 
 Prisijungiu per MC App ir pasitikrinu ar tikrai viskas gerai. Uff... Pasisekė! 😊
 
-Taip kad tikrai galima nebelipti į medį ar prašyti rakto nuo stogo. Savo nRF kartotuvus galima atnaujinti ir būnant ant žemės ar viršutiniame namo laiptinės aukšte.
+Tad tikrai galima nebelipti į medį ar prašyti rakto nuo stogo. Savo nRF kartotuvus galima atnaujinti ir būnant ant žemės ar viršutiniame namo laiptinės aukšte.
 
 Sėkmės visiems darant atnaujinimus!
 
 **PAPILDYMAS:**
 
-Ant stogo turiu du kartotuvus, tai nusprendžiau eiti "va bank" ir BT OTA atstumą padidinti dar 5 metrais. Iki kartotuvo dabar beveik 20 m ir pakeliui 2 mūro sienos.
+Ant stogo turiu du kartotuvus, tai nusprendžiau eiti "*va bank*" ir BT OTA atstumą padidinti dar 5 metrais. Iki kartotuvo dabar beveik 20 m ir pakeliui 2 mūro sienos.
 
-BT signalas iš kartotuvo šį kartą jau šokinėja tarp -88 ir - 90 dBm. 😬 Paleidžiu atnaujinimą per DFU programėlę ir stebiu eigą. Greitis nukrito per pusę iki 4.5 kB/s. Procesas trunka dvigubai ilgiau. Liniuotė kartas nuo karto trumpam sustingsta. Ilgai ir skausmingai sulaukiu 100%.
+BT signalas iš kartotuvo šį kartą jau šokinėja tarp -88 ir - 90 dBm... 😬 Paleidžiu atnaujinimą per DFU programėlę ir stebiu eigą. Greitis nukrito per pusę iki 4.5 kB/s. Procesas trunka dvigubai ilgiau. Liniuotė kartas nuo karto trumpam sustingsta. Ilgai ir skausmingai sulaukiu 100%.
 
-Bandau prisijungti prie kartotuvo. Timeout! Bandau dar kelis kartus - vėl Timeout. Na, va - prisižaidžiau 😂
+Bandau prisijungti prie kartotuvo. *Timeout*! Bandau dar kelis kartus - vėl *Timeout*. Na, va - prisižaidžiau 😂
 
-Visa laimė, kad kartotuvas neaukštai ir jį galima pasiekti ranka. Atsinešu iš namų įrankius ir jį demontuoju. Atsidarau dėžutę, prijungiu USB-C kabelį. Kompiuteryje atsirada dar vienas diskas. Su pele nuvelku naujo FW Zip failą į diską, kuris jį beveik akimirksniu "suvalgo" ir kartotuvas persikrauna. Bandau vėl prisijungti per MC App, bet ir vėl nesėkmingai. Tuomet naršyklėje pasileidžiu MeshCore Flasher ir bandau atnaujinti per ten. Pirmą kartą atnaujinimas sustoja maždaug ties 90% ir Flasher išmeta klaidą bei pasiūlo kartotuvą perkrauti ir pabandyti iš naujo. Taip ir padarau. Antras bandymas sėkmingai įrašo naują FW ir po persikrovimo galiu pasiekti atnaujintą kartotuvą. Uff.. 🙂
+Visa laimė, kad kartotuvas neaukštai ir jį galima pasiekti ranka. Atsinešu iš namų įrankius ir jį demontuoju. Atsidarau dėžutę, prijungiu USB-C kabelį. Kompiuteryje atsirada dar vienas diskas. Su pele nuvelku FW zip failą į diską, kuris jį beveik akimirksniu "suvalgo" ir kartotuvas persikrauna. Bandau vėl prisijungti per MC App, bet ir vėl nesėkmingai. Tuomet kompiuterio naršyklėje pasileidžiu **MeshCore Flasher** ir bandau atnaujinti per ten. Pirmą kartą atnaujinimas sustoja maždaug ties 90 % ir **Flasher** išmeta klaidą bei pasiūlo kartotuvą perkrauti ir pabandyti iš naujo. Taip ir padarau. Antras bandymas sėkmingai įrašo naują FW ir po R persikrovimo galiu jį pasiekti. Uff.. 🙂
 
-Kodėl taip nutiko su antruoju R galiu tik spėti. Jis yra jau "senukas" - pirmasis R paleistas Vilnuje prieš metus. Jo HW Revision irgi senesnis. Su juo visuomet buvo problemų atnaujinant. Tad nurašau OTA nesėkmę į patirtį ir tikiuosi, kad su naujuoju kartotuvu ateityje pavyks atstumo rekordą vėl pagerinti. 😉
+Kodėl taip nutiko su antruoju R galiu tik spėti. Jis yra jau "senukas" - pirmasis R paleistas Vilnuje prieš metus. Jo HW Revision irgi senesnis. Su juo visuomet buvo problemų atnaujinant. Tad nurašau šią OTA nesėkmę į patirtį ir tikiuosi, kad su naujuoju kartotuvu ateityje pavyks OTA atstumo rekordą vėl pagerinti. 😉
