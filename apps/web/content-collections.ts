@@ -54,6 +54,7 @@ export const blogPosts = defineCollection({
     description: z.string(),
     datePublished: z.coerce.date(),
     coverImage: z.string().optional(),
+    coverTitle: z.string().optional(),
     authors: z.array(z.string()),
     tags: z.array(z.string()),
     categories: z.array(z.string()),

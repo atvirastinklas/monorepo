@@ -42,16 +42,31 @@ export async function AppBlogPostPage({
 
 
         {post.coverImage ? (
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl border">
-            <Image
-              src={post.coverImage}
-              alt={post.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 768px"
-              priority
-            />
-          </div>
+          <figure className="space-y-2">
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-black">
+              <Image
+                src={post.coverImage}
+                alt=""
+                aria-hidden="true"
+                fill
+                className="scale-110 object-cover opacity-60 blur-2xl"
+                sizes="(max-width: 768px) 100vw, 768px"
+              />
+              <Image
+                src={post.coverImage}
+                alt={post.coverTitle ?? post.title}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 768px"
+                priority
+              />
+            </div>
+            {post.coverTitle ? (
+              <figcaption className="text-center text-xs text-muted-foreground">
+                {post.coverTitle}
+              </figcaption>
+            ) : null}
+          </figure>
         ) : null}
       </div>
 
