@@ -1,4 +1,4 @@
-export const MESHCORE_IATA_REGIONS = ["VNO", "KUN", "SQQ"] as const;
+export const MESHCORE_IATA_REGIONS = ["VNO", "KUN", "SQQ", "PLQ"] as const;
 
 export type MeshcoreIataRegion = (typeof MESHCORE_IATA_REGIONS)[number];
 
