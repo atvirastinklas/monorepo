@@ -46,6 +46,7 @@
   },
   "DevicesSection": {
     "heading": "Įrenginiai",
+    "catalogLink": "Įrenginių katalogas",
     "buyFromBrand": "Pirkti pas {brand}",
     "buyFromAliExpress": "Pirkti „AliExpress“",
     "readMore": "Skaityti daugiau",

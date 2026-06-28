@@ -6,6 +6,7 @@ import Image from "next/image";
 import { type DeviceShowcaseItem, getLandingDeviceSections } from "@/lib/devices";
 import { DevicePlatformIcon, getDevicePlatformLabel } from "@/lib/device-platforms";
 
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 function DeviceCard({
@@ -82,12 +83,18 @@ export async function DevicesShowcase() {
   return (
     <section className="border-t bg-muted/40 py-14 md:py-20" aria-labelledby="devices-heading">
       <div className="mx-auto w-full max-w-6xl px-6">
-        <h2
-          id="devices-heading"
-          className="mb-8 text-2xl font-bold tracking-tight md:mb-10 md:text-3xl"
-        >
-          {t("heading")}
-        </h2>
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 md:mb-10 sm:flex-row sm:items-center">
+          <h2 id="devices-heading" className="text-2xl font-bold tracking-tight md:text-3xl">
+            {t("heading")}
+          </h2>
+          <Link
+            href="/zinynas/irenginiai"
+            className={cn(buttonVariants({ variant: "outline" }), "gap-2 whitespace-nowrap")}
+          >
+            {t("catalogLink")}
+            <RiArrowRightLine className="size-4" aria-hidden />
+          </Link>
+        </div>
 
         {sections.map((section, sectionIndex) => {
           return (
