@@ -26,13 +26,14 @@ export type BlogPostDocument = BlogPost & {
   readingTimeMinutes: number;
 };
 
+export type BlogCategorySummary = {
+  alias: string;
+  displayName: string;
+  count: number;
+};
+
 function isResolvedBlogPost(post: BlogPost): post is BlogPostDocument {
-  return Boolean(
-    post.slug &&
-      post.url &&
-      post.mdx &&
-      typeof post.readingTimeMinutes === "number",
-  );
+  return Boolean(post.slug && post.url && post.mdx && typeof post.readingTimeMinutes === "number");
 }
 
 function validateMetaAliases(post: BlogPostDocument): string[] {
@@ -80,6 +81,22 @@ export function getBlogPostBySlug(slug: string) {
 
 export function getAllBlogPostParams() {
   return allBlogPosts.map((post) => ({ slug: post.slug }));
+}
+
+export function getBlogCategorySummaries(): BlogCategorySummary[] {
+  const postCountsByCategory = new Map<string, number>();
+
+  for (const post of allBlogPosts) {
+    for (const alias of post.categories) {
+      postCountsByCategory.set(alias, (postCountsByCategory.get(alias) ?? 0) + 1);
+    }
+  }
+
+  return Object.entries(blogMeta.categories).map(([alias, category]) => ({
+    alias,
+    displayName: category.displayName,
+    count: postCountsByCategory.get(alias) ?? 0,
+  }));
 }
 
 export function resolveAuthors(aliases: string[]) {
