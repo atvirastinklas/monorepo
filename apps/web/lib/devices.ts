@@ -15,6 +15,7 @@ type ResolvedDeviceDocument = Device & {
   makerSlug: string;
   deviceSlug: string;
   slugSegments: [string, string];
+  sourcePath: string;
   url: string;
   mdx: string;
 };
@@ -49,6 +50,7 @@ function isResolvedDeviceDocument(device: Device): device is ResolvedDeviceDocum
   return Boolean(
     device.makerSlug &&
     device.deviceSlug &&
+    device.sourcePath &&
     device.url &&
     device.mdx &&
     device.slugSegments?.length === 2,

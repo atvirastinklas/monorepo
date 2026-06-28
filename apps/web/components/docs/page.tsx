@@ -1,8 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import type { ComponentProps, ComponentType } from "react";
 
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "@/components/layout/docs/page";
+import {
+  DocsBody,
+  DocsDescription,
+  DocsPage,
+  DocsTitle,
+  EditOnGitHub,
+} from "@/components/layout/docs/page";
 import { MeshcoreRepeatersList } from "@/components/meshcore/repeaters-list";
+import { getGitHubEditUrl } from "@/lib/github";
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import * as CarouselComponents from "@workspace/ui/components/carousel";
@@ -26,6 +33,7 @@ type MdxPageData = {
   }>;
   toc?: unknown;
   full?: boolean;
+  sourcePath: string;
 };
 
 export async function AppDocsPage({ page }: AppDocsPageProps) {
@@ -33,10 +41,14 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
   const data = page.data as unknown as MdxPageData;
   const MDX = data.body;
   const toc = data.toc as ComponentProps<typeof DocsPage>["toc"];
+  const editUrl = getGitHubEditUrl(data.sourcePath);
 
   return (
     <DocsPage toc={toc} full={data.full}>
-      <DocsTitle>{data.title}</DocsTitle>
+      <DocsTitle className="flex flex-col items-start justify-between gap-2 sm:flex-row">
+        <span className="min-w-0">{data.title}</span>
+        <EditOnGitHub className="shrink-0 whitespace-nowrap" href={editUrl} />
+      </DocsTitle>
       <DocsDescription>{data.description ?? t("fallbackDescription")}</DocsDescription>
       <DocsBody>
         <MDX

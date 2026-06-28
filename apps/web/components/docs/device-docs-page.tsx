@@ -3,10 +3,11 @@ import { RiCpuLine } from "@remixicon/react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 
-import { DocsBody, DocsPage, DocsTitle } from "@/components/layout/docs/page";
+import { DocsBody, DocsPage, DocsTitle, EditOnGitHub } from "@/components/layout/docs/page";
 import { cn } from "@/lib/cn";
 import type { DeviceDocument } from "@/lib/devices";
 import { DevicePlatformIcon, getDevicePlatformLabel } from "@/lib/device-platforms";
+import { getGitHubEditUrl } from "@/lib/github";
 import { getMDXComponents } from "@/mdx-components";
 import * as CarouselComponents from "@workspace/ui/components/carousel";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
@@ -46,10 +47,14 @@ function getProductKindTranslationKey(productKind: DeviceDocument["productKind"]
 
 export async function AppDeviceDocsPage({ device }: { device: DeviceDocument }) {
   const t = await getTranslations("DevicePage");
+  const editUrl = getGitHubEditUrl(device.sourcePath);
 
   return (
     <DocsPage>
-      <DocsTitle>{device.title}</DocsTitle>
+      <DocsTitle className="flex flex-col items-start justify-between gap-2 sm:flex-row">
+        <span className="min-w-0">{device.title}</span>
+        <EditOnGitHub className="shrink-0 whitespace-nowrap" href={editUrl} />
+      </DocsTitle>
 
       {device.featured || device.deprecated ? (
         <div className="mb-4 flex flex-wrap gap-2">

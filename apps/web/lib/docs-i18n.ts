@@ -14,6 +14,7 @@ const { provider } = defineI18nUI(docsI18n, {
       displayName: "Lietuvių",
       search: "Ieškoti",
       toc: "Turinys",
+      editOnGithub: "Redaguoti GitHub",
     },
   },
 });

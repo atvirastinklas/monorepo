@@ -32,6 +32,7 @@ export const devices = defineCollection({
       makerSlug,
       deviceSlug,
       slugSegments: [makerSlug, deviceSlug],
+      sourcePath: `apps/web/content/devices/${document._meta.path}.mdx`,
       url: `/zinynas/irenginiai/${makerSlug}/${deviceSlug}`,
       mdx: await compileMDX(context, document),
     };
