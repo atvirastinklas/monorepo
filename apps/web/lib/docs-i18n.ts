@@ -15,6 +15,8 @@ const { provider } = defineI18nUI(docsI18n, {
       search: "Ieškoti",
       toc: "Turinys",
       editOnGithub: "Redaguoti GitHub",
+      previousPage: "Ankstesnis puslapis",
+      nextPage: "Kitas puslapis",
     },
   },
 });
