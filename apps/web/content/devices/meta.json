@@ -1,4 +1,7 @@
 {
+  "heltec": {
+    "label": "Heltec"
+  },
   "seeed-studio": {
     "label": "Seeed Studio"
   },
