@@ -1,0 +1,37 @@
+---
+title: Tinklo Monitoringas
+description: Tinklo srauto stebėjimas ir išsiuntimas apdorojimui
+---
+
+MeshCore tinklo monitoringas yra papildomas, tinklui nebūtinas įrankis, skirtas tinklo srautui, jo gyvybingumui ir diagnostinei informacijai analizuoti. Jis naudingas tiek naudotojams, tiek retransliatorių operatoriams.
+
+## Naudojami įrankiai
+
+<Cards>
+  <Card href="https://meshcore.atvirastinklas.lt" title="CoreScope" about="_blank">
+    Tinklo stebėjimui ir analizei
+  </Card>
+  <Card href="https://meshmapper.net" title="MeshMapper" about="_blank">
+    Tinklo aprėpties bandymai
+  </Card>
+</Cards>
+
+
+## Tapti tinklo stebėtoju
+
+Tinklo stebėjimo mazgai klauso tiesiogiai retransliuojamų paketų ir siunčia į MQTT serverį. Įrankiai agreguoja gautus paketus iš įvairių stebėtoju ir daro analize. Norint prisidėti prie tinklo stebėjimo, reikia paruošti įrenginį kuris tai atliktų:
+- ESP32 įrenginys su stebėjimo programine įranga prisijungus prie Wi-Fi tinklo
+- Bet koks LoRa įrenginys prijungtas prie kompiuterio (pvz.: Raspberry Pi)
+- Raspberry Pi įrenginys su LoRa hat ir `openHop` programine įranga
+
+### MQTT Konfigūracija
+
+| Nustatymas | Reikšmė | Aprašymas |
+| ---------- | ------- | --------- |
+| Serverio adresas | `mqtt-mc.atvirastinklas.lt` | |
+| URL kelias (angl. _Base path_) | _Palikite tuščią_ | |
+| Protokolas (angl. _Protocol_) | `WebSocket` arba `WS` | |
+| Portas | `443` | |
+| TLS | Įjungtas | Sertifikato naudojimas ir verifikavimas turi būti įjungti |
+| Autentifikacija (angl. _Authentication_) | `JWT` arba `Token` | Bus naudojamas mazgo privatus raktas sugeneruoti prisijungimus prie MQTT brokerio |
+| Autentifikacijos JWT auditorija (angl. _Authentication JWT Audience_) | `mqtt-mc.atvirastinklas.lt` |  |
