@@ -1,4 +1,7 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import bboxPolygon from "@turf/bbox-polygon";
+import booleanIntersects from "@turf/boolean-intersects";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import type { Insertable, Kysely, Selectable } from "kysely";
 import { z } from "zod";
 
@@ -8,8 +11,52 @@ import {
   type MeshcoreIataRegion,
 } from "../../meshcore/regions";
 import { createDatabase, type Database, type MeshcoreRepeaterTable } from "../db";
+import lithuaniaGeoJson from "./assets/lithuania.geojson";
 
 const MESHCORE_FETCH_TIMEOUT_MS = 10_000;
+
+type GeoJsonPosition = [number, number, ...number[]];
+type GeoJsonLinearRing = GeoJsonPosition[];
+type GeoJsonPolygonCoordinates = GeoJsonLinearRing[];
+type GeoJsonMultiPolygonCoordinates = GeoJsonPolygonCoordinates[];
+type GeoJsonBoundingBox = [number, number, number, number];
+
+interface GeoJsonFeatureCollection {
+  type: "FeatureCollection";
+  features: GeoJsonFeature[];
+}
+
+interface GeoJsonFeature<G extends GeoJsonGeometry | null = GeoJsonGeometry | null> {
+  type: "Feature";
+  geometry: G;
+  properties: Record<string, unknown> | null;
+}
+
+type GeoJsonPointGeometry = {
+  type: "Point";
+  coordinates: GeoJsonPosition;
+};
+
+type GeoJsonPolygonGeometry = {
+  type: "Polygon";
+  coordinates: GeoJsonPolygonCoordinates;
+};
+
+type GeoJsonMultiPolygonGeometry = {
+  type: "MultiPolygon";
+  coordinates: GeoJsonMultiPolygonCoordinates;
+};
+
+type GeoJsonBoundaryGeometry = GeoJsonPolygonGeometry | GeoJsonMultiPolygonGeometry;
+type GeoJsonGeometry = GeoJsonPointGeometry | GeoJsonBoundaryGeometry;
+type GeoJsonBoundaryFeature = GeoJsonFeature<GeoJsonBoundaryGeometry>;
+type GeoJsonPointFeature = GeoJsonFeature<GeoJsonPointGeometry>;
+
+const LITHUANIA_POLYGON_FEATURES = extractGeoJsonPolygonFeatures(
+  lithuaniaGeoJson as GeoJsonFeatureCollection,
+);
+const LITHUANIA_BOUNDS = calculateCoordinateBounds(LITHUANIA_POLYGON_FEATURES);
+const LITHUANIA_BOUNDS_POLYGON = bboxPolygon(LITHUANIA_BOUNDS);
 
 const meshMapperRepeaterListSchema = z.array(z.unknown());
 
@@ -123,11 +170,13 @@ export async function syncMeshcoreRepeaters(
   const db = createDatabase(database);
   const recordedAt = toUnixSeconds(options.now ?? new Date());
   const regions = options.regions ?? MESHCORE_IATA_REGIONS;
-  const results: SyncMeshcoreRegionResult[] = [];
+  const promises: Promise<SyncMeshcoreRegionResult>[] = [];
 
   for (const iata of regions) {
-    results.push(await syncMeshcoreRegion(db, iata, recordedAt));
+    promises.push(syncMeshcoreRegion(db, iata, recordedAt));
   }
+
+  const results = await Promise.all(promises);
 
   return {
     recordedAt,
@@ -147,7 +196,10 @@ async function syncMeshcoreRegion(
     const rawRepeaters = await fetchMeshcoreRegion(iata);
     const rows = rawRepeaters
       .map((rawRepeater) => normalizeMeshcoreRepeater(rawRepeater, iata, recordedAt))
-      .filter((row): row is Insertable<MeshcoreRepeaterTable> => row !== null);
+      .filter(
+        (row): row is Insertable<MeshcoreRepeaterTable> =>
+          row !== null && isInsideLithuania(row.lon, row.lat),
+      );
 
     for (const row of rows) {
       await upsertMeshcoreRepeater(db, row);
@@ -260,6 +312,113 @@ function toUnixSeconds(date: Date) {
 
 function sum(results: SyncMeshcoreRegionResult[], key: "fetched" | "upserted" | "skipped") {
   return results.reduce((total, result) => total + result[key], 0);
+}
+
+function isInsideLithuania(
+  longitude: number | null | undefined,
+  latitude: number | null | undefined,
+) {
+  if (
+    longitude === null ||
+    longitude === undefined ||
+    latitude === null ||
+    latitude === undefined ||
+    !Number.isFinite(longitude) ||
+    !Number.isFinite(latitude)
+  ) {
+    return false;
+  }
+
+  const repeaterPoint = createPointFeature(longitude, latitude);
+
+  if (!booleanIntersects(repeaterPoint, LITHUANIA_BOUNDS_POLYGON)) {
+    return false;
+  }
+
+  return LITHUANIA_POLYGON_FEATURES.some((feature) =>
+    booleanPointInPolygon(repeaterPoint, feature),
+  );
+}
+
+function createPointFeature(longitude: number, latitude: number): GeoJsonPointFeature {
+  return {
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [longitude, latitude],
+    },
+    properties: null,
+  };
+}
+
+function extractGeoJsonPolygonFeatures(geoJson: GeoJsonFeatureCollection) {
+  const features: GeoJsonBoundaryFeature[] = [];
+
+  for (const feature of geoJson.features) {
+    const { geometry } = feature;
+
+    if (geometry === null || geometry.type === "Point") {
+      continue;
+    }
+
+    features.push({
+      type: "Feature",
+      geometry,
+      properties: feature.properties,
+    });
+  }
+
+  if (features.length === 0) {
+    throw new Error("Lithuania GeoJSON does not contain any polygon geometry");
+  }
+
+  return features;
+}
+
+function calculateCoordinateBounds(features: readonly GeoJsonBoundaryFeature[]): GeoJsonBoundingBox {
+  const bounds = {
+    minLongitude: Number.POSITIVE_INFINITY,
+    minLatitude: Number.POSITIVE_INFINITY,
+    maxLongitude: Number.NEGATIVE_INFINITY,
+    maxLatitude: Number.NEGATIVE_INFINITY,
+  };
+
+  for (const feature of features) {
+    const { geometry } = feature;
+
+    if (geometry === null) {
+      continue;
+    }
+
+    const polygons =
+      geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+
+    for (const polygon of polygons) {
+      for (const ring of polygon) {
+        for (const [longitude, latitude] of ring) {
+          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+            continue;
+          }
+
+          bounds.minLongitude = Math.min(bounds.minLongitude, longitude);
+          bounds.minLatitude = Math.min(bounds.minLatitude, latitude);
+          bounds.maxLongitude = Math.max(bounds.maxLongitude, longitude);
+          bounds.maxLatitude = Math.max(bounds.maxLatitude, latitude);
+        }
+      }
+    }
+  }
+
+  if (!Number.isFinite(bounds.minLongitude) || !Number.isFinite(bounds.minLatitude)) {
+    throw new Error("Lithuania GeoJSON does not contain finite coordinates");
+  }
+
+  return [
+    bounds.minLongitude,
+    bounds.minLatitude,
+    bounds.maxLongitude,
+    bounds.maxLatitude,
+  ];
 }
 
 function coerceFiniteNumber(value: unknown) {
