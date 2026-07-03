@@ -8,7 +8,14 @@
       "device-catalog": "Įrenginių katalogas",
       "blog": "Blogas"
     },
-    "github": "GitHub"
+    "github": "GitHub",
+    "telegram": {
+      "desktopLabel": "Bendruomenė",
+      "mobileLabel": "MeshCore bendruomenė"
+    },
+    "mobile": {
+      "closeMenuAriaLabel": "Uždaryti meniu"
+    }
   },
   "HeroSection": {
     "title": "Atvira ryšio infrastruktūra Lietuvoje",
