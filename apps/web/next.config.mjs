@@ -12,14 +12,6 @@ const withMDX = createMDX();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/map"],
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.geojson$/i,
-      type: "json",
-    });
-
-    return config;
-  },
   async redirects() {
     return [
       {

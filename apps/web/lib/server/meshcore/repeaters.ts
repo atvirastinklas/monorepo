@@ -11,7 +11,7 @@ import {
   type MeshcoreIataRegion,
 } from "../../meshcore/regions";
 import { createDatabase, type Database, type MeshcoreRepeaterTable } from "../db";
-import lithuaniaGeoJson from "./assets/lithuania.geojson";
+import lithuaniaGeoJson from "./assets/lithuania.json";
 
 const MESHCORE_FETCH_TIMEOUT_MS = 10_000;
 
@@ -52,8 +52,9 @@ type GeoJsonGeometry = GeoJsonPointGeometry | GeoJsonBoundaryGeometry;
 type GeoJsonBoundaryFeature = GeoJsonFeature<GeoJsonBoundaryGeometry>;
 type GeoJsonPointFeature = GeoJsonFeature<GeoJsonPointGeometry>;
 
+const LITHUANIA_GEO_JSON_SOURCE: unknown = lithuaniaGeoJson;
 const LITHUANIA_POLYGON_FEATURES = extractGeoJsonPolygonFeatures(
-  lithuaniaGeoJson as GeoJsonFeatureCollection,
+  LITHUANIA_GEO_JSON_SOURCE as GeoJsonFeatureCollection,
 );
 const LITHUANIA_BOUNDS = calculateCoordinateBounds(LITHUANIA_POLYGON_FEATURES);
 const LITHUANIA_BOUNDS_POLYGON = bboxPolygon(LITHUANIA_BOUNDS);

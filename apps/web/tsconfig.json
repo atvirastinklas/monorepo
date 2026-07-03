@@ -23,6 +23,7 @@
     "next.config.ts",
     "**/*.ts",
     "**/*.tsx",
+    "lib/server/meshcore/assets/*.json",
     ".content-collections/generated/**/*.d.ts",
     ".source/**/*.ts",
     ".next/types/**/*.ts"
