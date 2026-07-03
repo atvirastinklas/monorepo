@@ -1,0 +1,26 @@
+[
+  {
+    "id": "01-tree-repeater",
+    "src": "/assets/gallery/01-tree-repeater.jpg",
+    "title": "Retransliatorius ant medžio",
+    "description": "Autonominis retransliatorius su saulės panele sumontuotas ant medinės lentos medžio viršunėje."
+  },
+  {
+    "id": "02-windowsill",
+    "src": "/assets/gallery/02-windowsill.jpg",
+    "title": "Retransliatorius ant palangės",
+    "description": "Retransliatorius pastatytas ant palangės su krovikliu."
+  },
+  {
+    "id": "03-roof",
+    "src": "/assets/gallery/03-roof.jpg",
+    "title": "Retransliatorius ant stogo",
+    "description": "Autonominis retransliatorius su saulės panele sumontuotas ant stiebo."
+  },
+  {
+    "id": "04-tree-repeater",
+    "src": "/assets/gallery/04-tree-repeater.jpg",
+    "title": "Retransliatorius tarp medžių",
+    "description": "Dar vienas retransliatorius ant medžio."
+  }
+]

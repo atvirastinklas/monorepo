@@ -6,7 +6,8 @@
     "menu": {
       "docs": "Žinynas",
       "device-catalog": "Įrenginių katalogas",
-      "blog": "Blogas"
+      "blog": "Blogas",
+      "gallery": "Galerija"
     },
     "github": "GitHub",
     "telegram": {
@@ -102,6 +103,16 @@
     "communityCta": {
       "heading": "Prisijunk prie MeshCore bendruomenės!",
       "telegramButton": "Telegram grupė"
+    }
+  },
+  "GalleryPage": {
+    "listTitle": "Galerija",
+    "listDescription": "Bendruomenės narių įrenginių nuotraukos.",
+    "empty": "Nuotraukų dar nėra.",
+    "openImageAriaLabel": "Atidaryti nuotrauką: {title}",
+    "lightbox": {
+      "previous": "Ankstesnė nuotrauka",
+      "next": "Kita nuotrauka"
     }
   },
   "Footer": {

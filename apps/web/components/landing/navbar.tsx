@@ -16,6 +16,7 @@ export function Navbar() {
   const menuItems = [
     { href: "/zinynas", label: t("menu.docs") },
     { href: "/blogas", label: t("menu.blog") },
+    { href: "/galerija", label: t("menu.gallery") },
   ];
 
   const toggleMobileMenu = () => {
