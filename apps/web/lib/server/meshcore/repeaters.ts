@@ -6,14 +6,15 @@ import type { Insertable, Kysely, Selectable } from "kysely";
 import { z } from "zod";
 
 import {
-  getMeshcoreRepeatersUrl,
+  isMeshcoreIataRegion,
   MESHCORE_IATA_REGIONS,
   type MeshcoreIataRegion,
 } from "../../meshcore/regions";
 import { createDatabase, type Database, type MeshcoreRepeaterTable } from "../db";
-import lithuaniaGeoJson from "./assets/lithuania.json";
+import meshcoreRegionsGeoJson from "./assets/lithuania.json";
 
 const MESHCORE_FETCH_TIMEOUT_MS = 10_000;
+const MESHCORE_CORESCOPE_NODES_URL = "https://meshcore.atvirastinklas.lt/api/nodes?limit=5000";
 
 type GeoJsonPosition = [number, number, ...number[]];
 type GeoJsonLinearRing = GeoJsonPosition[];
@@ -52,14 +53,16 @@ type GeoJsonGeometry = GeoJsonPointGeometry | GeoJsonBoundaryGeometry;
 type GeoJsonBoundaryFeature = GeoJsonFeature<GeoJsonBoundaryGeometry>;
 type GeoJsonPointFeature = GeoJsonFeature<GeoJsonPointGeometry>;
 
-const LITHUANIA_GEO_JSON_SOURCE: unknown = lithuaniaGeoJson;
-const LITHUANIA_POLYGON_FEATURES = extractGeoJsonPolygonFeatures(
-  LITHUANIA_GEO_JSON_SOURCE as GeoJsonFeatureCollection,
-);
-const LITHUANIA_BOUNDS = calculateCoordinateBounds(LITHUANIA_POLYGON_FEATURES);
-const LITHUANIA_BOUNDS_POLYGON = bboxPolygon(LITHUANIA_BOUNDS);
+interface MeshcoreRegionFeature {
+  iata: MeshcoreIataRegion;
+  feature: GeoJsonBoundaryFeature;
+  boundsPolygon: ReturnType<typeof bboxPolygon>;
+}
 
-const meshMapperRepeaterListSchema = z.array(z.unknown());
+const MESHCORE_REGION_GEO_JSON_SOURCE: unknown = meshcoreRegionsGeoJson;
+const MESHCORE_REGION_FEATURES = extractMeshcoreRegionFeatures(
+  MESHCORE_REGION_GEO_JSON_SOURCE as GeoJsonFeatureCollection,
+);
 
 const requiredStringSchema = z.preprocess((value) => {
   if (typeof value !== "string") {
@@ -70,45 +73,44 @@ const requiredStringSchema = z.preprocess((value) => {
   return trimmed.length > 0 ? trimmed : undefined;
 }, z.string().min(1));
 
-const optionalStringSchema = z.preprocess((value) => {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-
-  return String(value);
-}, z.string().nullable());
-
 const nullableNumberSchema = z.preprocess(
   (value) => coerceFiniteNumber(value),
   z.number().nullable(),
 );
 
-const nullableIntegerSchema = nullableNumberSchema.transform((value) =>
-  value === null ? null : Math.trunc(value),
-);
+const nullableUnixSecondsFromIsoSchema = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
 
-const requiredIntegerSchema = z.preprocess((value) => {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
+}, z.number().nullable());
+
+const nullablePositiveIntegerSchema = z.preprocess((value) => {
   const number = coerceFiniteNumber(value);
-  return number === null ? undefined : Math.trunc(number);
-}, z.number().int());
 
-const meshMapperRepeaterSchema = z.object({
-  id: requiredStringSchema,
-  hex_id: requiredStringSchema,
+  if (number === null) {
+    return null;
+  }
+
+  const truncated = Math.trunc(number);
+  return truncated > 0 ? truncated : null;
+}, z.number().int().positive().nullable());
+
+const coreScopeNodeListSchema = z.array(z.unknown());
+
+const coreScopeNodeSchema = z.object({
+  public_key: requiredStringSchema,
   name: requiredStringSchema,
+  role: requiredStringSchema,
+  foreign: z.boolean().optional(),
   lat: nullableNumberSchema,
   lon: nullableNumberSchema,
-  last_heard: nullableIntegerSchema,
-  created_at: nullableIntegerSchema,
-  enabled: requiredIntegerSchema,
-  power: optionalStringSchema,
-  iata: optionalStringSchema,
-  hop_bytes: nullableIntegerSchema,
+  hash_size: nullablePositiveIntegerSchema,
+  first_seen: nullableUnixSecondsFromIsoSchema,
+  last_heard: nullableUnixSecondsFromIsoSchema,
+  last_seen: nullableUnixSecondsFromIsoSchema,
 });
 
 export type MeshcoreRepeater = Selectable<MeshcoreRepeaterTable>;
@@ -124,18 +126,16 @@ export interface ListMeshcoreRepeatersResult {
 
 export interface SyncMeshcoreRegionResult {
   iata: MeshcoreIataRegion;
-  fetched: number;
   upserted: number;
-  skipped: number;
-  error?: string;
 }
 
 export interface SyncMeshcoreRepeatersResult {
   recordedAt: number;
-  regions: SyncMeshcoreRegionResult[];
   fetched: number;
   upserted: number;
   skipped: number;
+  removed: number;
+  regions: SyncMeshcoreRegionResult[];
 }
 
 export async function listMeshcoreRepeaters(
@@ -165,70 +165,54 @@ export async function syncMeshcoreRepeaters(
   database: D1Database,
   options: {
     now?: Date;
-    regions?: readonly MeshcoreIataRegion[];
   } = {},
 ): Promise<SyncMeshcoreRepeatersResult> {
   const db = createDatabase(database);
   const recordedAt = toUnixSeconds(options.now ?? new Date());
-  const regions = options.regions ?? MESHCORE_IATA_REGIONS;
-  const promises: Promise<SyncMeshcoreRegionResult>[] = [];
+  const rawNodes = await fetchCoreScopeNodes();
 
-  for (const iata of regions) {
-    promises.push(syncMeshcoreRegion(db, iata, recordedAt));
+  const regionCounts = new Map<MeshcoreIataRegion, number>();
+  const rows: Insertable<MeshcoreRepeaterTable>[] = [];
+  let skipped = 0;
+
+  for (const rawNode of rawNodes) {
+    const row = normalizeCoreScopeRepeater(rawNode, recordedAt);
+
+    if (row === null) {
+      skipped += 1;
+      continue;
+    }
+
+    rows.push(row);
+    const iata = row.iata as MeshcoreIataRegion;
+    regionCounts.set(iata, (regionCounts.get(iata) ?? 0) + 1);
   }
 
-  const results = await Promise.all(promises);
+  for (const row of rows) {
+    await upsertMeshcoreRepeater(db, row);
+  }
+
+  const removed = await deleteStaleMeshcoreRepeaters(db, recordedAt);
 
   return {
     recordedAt,
-    regions: results,
-    fetched: sum(results, "fetched"),
-    upserted: sum(results, "upserted"),
-    skipped: sum(results, "skipped"),
+    fetched: rawNodes.length,
+    upserted: rows.length,
+    skipped,
+    removed,
+    regions: MESHCORE_IATA_REGIONS.map((iata) => ({
+      iata,
+      upserted: regionCounts.get(iata) ?? 0,
+    })),
   };
 }
 
-async function syncMeshcoreRegion(
-  db: Kysely<Database>,
-  iata: MeshcoreIataRegion,
-  recordedAt: number,
-): Promise<SyncMeshcoreRegionResult> {
-  try {
-    const rawRepeaters = await fetchMeshcoreRegion(iata);
-    const rows = rawRepeaters
-      .map((rawRepeater) => normalizeMeshcoreRepeater(rawRepeater, iata, recordedAt))
-      .filter(
-        (row): row is Insertable<MeshcoreRepeaterTable> =>
-          row !== null && isInsideLithuania(row.lon, row.lat),
-      );
-
-    for (const row of rows) {
-      await upsertMeshcoreRepeater(db, row);
-    }
-
-    return {
-      iata,
-      fetched: rawRepeaters.length,
-      upserted: rows.length,
-      skipped: rawRepeaters.length - rows.length,
-    };
-  } catch (error) {
-    return {
-      iata,
-      fetched: 0,
-      upserted: 0,
-      skipped: 0,
-      error: error instanceof Error ? error.message : "Unknown MeshMapper sync error",
-    };
-  }
-}
-
-async function fetchMeshcoreRegion(iata: MeshcoreIataRegion): Promise<unknown[]> {
+async function fetchCoreScopeNodes(): Promise<unknown[]> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), MESHCORE_FETCH_TIMEOUT_MS);
 
   try {
-    const response = await fetch(getMeshcoreRepeatersUrl(iata), {
+    const response = await fetch(MESHCORE_CORESCOPE_NODES_URL, {
       headers: {
         accept: "application/json",
       },
@@ -236,14 +220,14 @@ async function fetchMeshcoreRegion(iata: MeshcoreIataRegion): Promise<unknown[]>
     });
 
     if (!response.ok) {
-      throw new Error(`MeshMapper ${iata} returned ${response.status}`);
+      throw new Error(`CoreScope nodes request returned ${response.status}`);
     }
 
-    const payload = (await response.json()) as unknown;
-    const result = meshMapperRepeaterListSchema.safeParse(payload);
+    const payload = (await response.json()) as unknown as { nodes: unknown[] };
+    const result = coreScopeNodeListSchema.safeParse(payload.nodes);
 
     if (!result.success) {
-      throw new Error(`MeshMapper ${iata} response was not an array`);
+      throw new Error("CoreScope nodes response was not an array");
     }
 
     return result.data;
@@ -252,31 +236,54 @@ async function fetchMeshcoreRegion(iata: MeshcoreIataRegion): Promise<unknown[]>
   }
 }
 
-function normalizeMeshcoreRepeater(
+function normalizeCoreScopeRepeater(
   value: unknown,
-  fallbackIata: MeshcoreIataRegion,
   recordedAt: number,
 ): Insertable<MeshcoreRepeaterTable> | null {
-  const result = meshMapperRepeaterSchema.safeParse(value);
+  const result = coreScopeNodeSchema.safeParse(value);
 
   if (!result.success) {
     return null;
   }
 
-  const repeater = result.data;
+  const node = result.data;
+
+  if (node.role !== "repeater" || node.foreign !== false) {
+    return null;
+  }
+
+  if (node.lat === null || node.lon === null) {
+    return null;
+  }
+
+  const iata = findMeshcoreIataRegion(node.lon, node.lat);
+
+  if (iata === null) {
+    return null;
+  }
+
+  if (node.hash_size === null) {
+    return null;
+  }
+
+  const hexId = derivePublicKeyHexId(node.public_key, node.hash_size);
+
+  if (hexId === null) {
+    return null;
+  }
 
   return {
-    iata: repeater.iata ?? fallbackIata,
-    id: repeater.id,
-    hex_id: repeater.hex_id,
-    name: repeater.name,
-    lat: repeater.lat,
-    lon: repeater.lon,
-    last_heard: repeater.last_heard,
-    created_at: repeater.created_at,
-    enabled: repeater.enabled,
-    power: repeater.power,
-    hop_bytes: repeater.hop_bytes,
+    iata,
+    id: hexId,
+    hex_id: node.public_key,
+    name: node.name,
+    lat: node.lat,
+    lon: node.lon,
+    last_heard: node.last_heard ?? node.last_seen,
+    created_at: node.first_seen,
+    enabled: 1,
+    power: null,
+    hop_bytes: null,
     recorded_at: recordedAt,
     updated_at: recordedAt,
   };
@@ -307,18 +314,35 @@ async function upsertMeshcoreRepeater(
     .execute();
 }
 
+async function deleteStaleMeshcoreRepeaters(db: Kysely<Database>, recordedAt: number) {
+  const result = await db
+    .deleteFrom("meshcore_repeaters")
+    .where("recorded_at", "<", recordedAt)
+    .executeTakeFirst();
+
+  return result ? Number(result.numDeletedRows) : 0;
+}
+
 function toUnixSeconds(date: Date) {
   return Math.floor(date.getTime() / 1000);
 }
 
-function sum(results: SyncMeshcoreRegionResult[], key: "fetched" | "upserted" | "skipped") {
-  return results.reduce((total, result) => total + result[key], 0);
+// CoreScope identifies nodes on-air by the leading `hash_size` bytes of their
+// public key, not the full key, so the DB id must be truncated the same way.
+function derivePublicKeyHexId(publicKeyHex: string, hashSizeBytes: number): string | null {
+  const hexLength = hashSizeBytes * 2;
+
+  if (publicKeyHex.length < hexLength) {
+    return null;
+  }
+
+  return publicKeyHex.slice(0, hexLength).toLowerCase();
 }
 
-function isInsideLithuania(
+function findMeshcoreIataRegion(
   longitude: number | null | undefined,
   latitude: number | null | undefined,
-) {
+): MeshcoreIataRegion | null {
   if (
     longitude === null ||
     longitude === undefined ||
@@ -327,18 +351,22 @@ function isInsideLithuania(
     !Number.isFinite(longitude) ||
     !Number.isFinite(latitude)
   ) {
-    return false;
+    return null;
   }
 
-  const repeaterPoint = createPointFeature(longitude, latitude);
+  const point = createPointFeature(longitude, latitude);
 
-  if (!booleanIntersects(repeaterPoint, LITHUANIA_BOUNDS_POLYGON)) {
-    return false;
+  for (const region of MESHCORE_REGION_FEATURES) {
+    if (!booleanIntersects(point, region.boundsPolygon)) {
+      continue;
+    }
+
+    if (booleanPointInPolygon(point, region.feature)) {
+      return region.iata;
+    }
   }
 
-  return LITHUANIA_POLYGON_FEATURES.some((feature) =>
-    booleanPointInPolygon(repeaterPoint, feature),
-  );
+  return null;
 }
 
 function createPointFeature(longitude: number, latitude: number): GeoJsonPointFeature {
@@ -352,28 +380,50 @@ function createPointFeature(longitude: number, latitude: number): GeoJsonPointFe
   };
 }
 
-function extractGeoJsonPolygonFeatures(geoJson: GeoJsonFeatureCollection) {
-  const features: GeoJsonBoundaryFeature[] = [];
+function extractMeshcoreRegionFeatures(
+  geoJson: GeoJsonFeatureCollection,
+): MeshcoreRegionFeature[] {
+  const regionFeatures: MeshcoreRegionFeature[] = [];
 
   for (const feature of geoJson.features) {
-    const { geometry } = feature;
+    const { geometry, properties } = feature;
 
     if (geometry === null || geometry.type === "Point") {
       continue;
     }
 
-    features.push({
+    const iataCode = properties?.iata_code;
+
+    if (typeof iataCode !== "string" || !isMeshcoreIataRegion(iataCode)) {
+      continue;
+    }
+
+    const boundaryFeature: GeoJsonBoundaryFeature = {
       type: "Feature",
       geometry,
-      properties: feature.properties,
+      properties,
+    };
+
+    regionFeatures.push({
+      iata: iataCode,
+      feature: boundaryFeature,
+      boundsPolygon: bboxPolygon(calculateCoordinateBounds([boundaryFeature])),
     });
   }
 
-  if (features.length === 0) {
-    throw new Error("Lithuania GeoJSON does not contain any polygon geometry");
+  if (regionFeatures.length === 0) {
+    throw new Error("MeshCore region GeoJSON does not contain any IATA region polygons");
   }
 
-  return features;
+  const missingRegions = MESHCORE_IATA_REGIONS.filter(
+    (iata) => !regionFeatures.some((region) => region.iata === iata),
+  );
+
+  if (missingRegions.length > 0) {
+    throw new Error(`MeshCore region GeoJSON is missing polygons for: ${missingRegions.join(", ")}`);
+  }
+
+  return regionFeatures;
 }
 
 function calculateCoordinateBounds(features: readonly GeoJsonBoundaryFeature[]): GeoJsonBoundingBox {
@@ -411,7 +461,7 @@ function calculateCoordinateBounds(features: readonly GeoJsonBoundaryFeature[]):
   }
 
   if (!Number.isFinite(bounds.minLongitude) || !Number.isFinite(bounds.minLatitude)) {
-    throw new Error("Lithuania GeoJSON does not contain finite coordinates");
+    throw new Error("MeshCore region GeoJSON does not contain finite coordinates");
   }
 
   return [

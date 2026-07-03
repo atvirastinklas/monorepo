@@ -9,13 +9,11 @@ export default {
   fetch: handler.fetch,
 
   async scheduled(_controller: ScheduledController, env: CloudflareEnv) {
-    const result = await syncMeshcoreRepeaters(env.DB);
-    const failedRegions = result.regions.filter((region) => region.error);
-
-    if (failedRegions.length > 0) {
-      console.error("MeshCore repeater sync completed with errors", failedRegions);
-    } else {
-      console.info("MeshCore repeater sync completed", result);
+    try {
+      const result = await syncMeshcoreRepeaters(env.DB);
+      console.info("MeshCore CoreScope repeater sync completed", result);
+    } catch (error) {
+      console.error("MeshCore CoreScope repeater sync failed", error);
     }
   },
 } satisfies ExportedHandler<CloudflareEnv>;

@@ -64,7 +64,7 @@ export function MeshcoreRepeatersClient({
         <div>
           {showTitle ? <h3 className="font-semibold text-lg">Retransliatoriai tinkle</h3> : null}
           <p className="text-fd-muted-foreground text-sm">
-            Duomenys paimti iš MeshMapper sistemos ir atnaujinami kas 30 minučių.
+            Duomenys paimti iš AtvirasTinklas CoreScope įrankio ir atnaujinami kas 30 minučių.
           </p>
         </div>
         <MeshcoreRepeatersFilters
