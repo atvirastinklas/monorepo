@@ -124,6 +124,16 @@ export interface ListMeshcoreRepeatersResult {
   recordedAtMax: number | null;
 }
 
+export interface MeshcoreRepeaterRegionStat {
+  iata: MeshcoreIataRegion;
+  count: number;
+}
+
+export interface MeshcoreRepeaterStats {
+  regions: MeshcoreRepeaterRegionStat[];
+  total: number;
+}
+
 export interface SyncMeshcoreRegionResult {
   iata: MeshcoreIataRegion;
   upserted: number;
@@ -159,6 +169,28 @@ export async function listMeshcoreRepeaters(
   }, null);
 
   return { repeaters, recordedAtMax };
+}
+
+export async function getMeshcoreRepeaterStats(
+  database: D1Database,
+): Promise<MeshcoreRepeaterStats> {
+  const db = createDatabase(database);
+  const rows = await db
+    .selectFrom("meshcore_repeaters")
+    .select((eb) => ["iata", eb.fn.countAll<number>().as("count")])
+    .groupBy("iata")
+    .execute();
+
+  const countsByIata = new Map<string, number>(rows.map((row) => [row.iata, Number(row.count)]));
+
+  const regions = MESHCORE_IATA_REGIONS.map((iata) => ({
+    iata,
+    count: countsByIata.get(iata) ?? 0,
+  }));
+
+  const total = regions.reduce((sum, region) => sum + region.count, 0);
+
+  return { regions, total };
 }
 
 export async function syncMeshcoreRepeaters(

@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "cf:build": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "preview:scheduled": "opennextjs-cloudflare build && opennextjs-cloudflare preview --test-scheduled",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:schema:local": "wrangler d1 execute at-meshcore --file=./migrations/0001_meshcore_repeaters.sql --local",
+    "db:count:local": "wrangler d1 execute at-meshcore --command=\"SELECT COUNT(*) AS count FROM meshcore_repeaters\" --local",
     "start": "next start",
     "lint": "pnpm -w biome lint .",
     "typecheck": "tsc --noEmit"

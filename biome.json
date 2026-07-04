@@ -3,6 +3,7 @@
   "files": {
     "ignore": [
       "**/node_modules/**",
+      "**/.pnpm-store/**",
       "**/.next/**",
       "**/dist/**",
       "**/build/**",
@@ -10,6 +11,7 @@
       "**/out/**",
       "**/.turbo/**",
       "**/.source/**",
+      "**/.open-next/**",
       "**/pnpm-lock.yaml"
     ]
   },

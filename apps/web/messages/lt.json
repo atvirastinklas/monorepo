@@ -52,6 +52,18 @@
       }
     }
   },
+  "MeshcoreStatsSection": {
+    "heading": "MeshCore Retransliatorių tinklas",
+    "subtitle": "Bendruomenės aktyvių retransliatorių skaičius Lietuvoje.",
+    "cta": "MeshCore žemėlapis",
+    "totalLabel": "Iš viso Lietuvoje",
+    "regions": {
+      "VNO": "Rytų Lietuva",
+      "KUN": "Pietų Lietuva",
+      "SQQ": "Šiaurės Lietuva",
+      "PLQ": "Vakarų Lietuva"
+    }
+  },
   "DevicesSection": {
     "heading": "Įrenginiai",
     "catalogLink": "Įrenginių katalogas",
