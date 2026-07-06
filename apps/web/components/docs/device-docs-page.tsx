@@ -16,17 +16,6 @@ import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { NamingRegionMap } from "../maps/naming-region-map";
 import { NamingFormatValidator } from "./naming-format-validator";
 
-function getDeviceTypeTranslationKey(deviceType: DeviceDocument["deviceType"]) {
-  switch (deviceType) {
-    case "companion":
-      return "typeCompanion";
-    case "repeater":
-      return "typeRepeater";
-    case "standalone":
-      return "typeStandalone";
-  }
-}
-
 function getMeshLabel(mesh: DeviceDocument["supportedMesh"][number]) {
   switch (mesh) {
     case "meshcore":
@@ -56,9 +45,9 @@ export async function AppDeviceDocsPage({ device }: { device: DeviceDocument }) 
         <EditOnGitHub className="shrink-0 whitespace-nowrap" href={editUrl} />
       </DocsTitle>
 
-      {device.featured || device.deprecated ? (
+      {device.featuredCategory || device.deprecated ? (
         <div className="mb-4 flex flex-wrap gap-2">
-          {device.featured ? (
+          {device.featuredCategory ? (
             <span className="inline-flex items-center rounded-md border bg-muted/60 px-2.5 py-1 text-sm font-medium">
               {t("featuredBadge")}
             </span>
@@ -98,10 +87,6 @@ export async function AppDeviceDocsPage({ device }: { device: DeviceDocument }) 
             <div>
               <dt className="mb-1 font-medium text-muted-foreground">{t("brand")}</dt>
               <dd className="text-base">{device.brand}</dd>
-            </div>
-            <div>
-              <dt className="mb-1 font-medium text-muted-foreground">{t("deviceType")}</dt>
-              <dd className="text-base">{t(getDeviceTypeTranslationKey(device.deviceType))}</dd>
             </div>
             <div>
               <dt className="mb-1 font-medium text-muted-foreground">{t("productKind")}</dt>

@@ -3,7 +3,7 @@ import { compileMDX } from "@content-collections/mdx";
 import { z } from "zod";
 
 const supportedMesh = z.enum(["meshcore", "meshtastic"]);
-const deviceType = z.enum(["companion", "repeater", "standalone"]);
+const featuredCategory = z.enum(["companion", "repeater", "standalone"]);
 const productKind = z.enum(["developmentKit", "finishedProduct"]);
 const platform = z.enum(["esp32", "nrf52", "rp2040"]);
 
@@ -18,9 +18,8 @@ export const devices = defineCollection({
     brand: z.string(),
     photo: z.string().optional(),
     supportedMesh: z.array(supportedMesh),
-    deviceType,
     productKind,
-    featured: z.boolean(),
+    featuredCategory: featuredCategory.optional(),
     deprecated: z.boolean(),
     platform
   }),

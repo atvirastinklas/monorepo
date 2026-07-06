@@ -1,7 +1,7 @@
 import type { Root } from "fumadocs-core/page-tree";
 
 import makerMetaConfig from "@/content/devices/meta.json";
-import type { DevicePlatform, DeviceType } from "@/lib/device-types";
+import type { DevicePlatform } from "@/lib/device-types";
 import { type Device, allDevices as collectedDevices } from "content-collections";
 
 const LANDING_SECTION_ORDER = ["companion", "repeaters", "standalone"] as const;
@@ -21,6 +21,7 @@ type ResolvedDeviceDocument = Device & {
 };
 export type DeviceDocument = ResolvedDeviceDocument;
 export type LandingDeviceSectionId = (typeof LANDING_SECTION_ORDER)[number];
+type DeviceFeaturedCategory = NonNullable<DeviceDocument["featuredCategory"]>;
 
 export type DeviceShowcaseItem = {
   id: string;
@@ -129,12 +130,15 @@ export function getDevicesPageTree(): Root {
   };
 }
 
-function getLandingSectionId(deviceType: DeviceType): LandingDeviceSectionId {
-  if (deviceType === "repeater") {
-    return "repeaters";
+function getLandingSectionId(featuredCategory: DeviceFeaturedCategory): LandingDeviceSectionId {
+  switch (featuredCategory) {
+    case "companion":
+      return "companion";
+    case "repeater":
+      return "repeaters";
+    case "standalone":
+      return "standalone";
   }
-
-  return deviceType;
 }
 
 export function getLandingDeviceSections(): DeviceShowcaseSectionSpec[] {
@@ -145,11 +149,11 @@ export function getLandingDeviceSections(): DeviceShowcaseSectionSpec[] {
   }
 
   for (const device of allDevices) {
-    if (!device.featured) {
+    if (!device.featuredCategory) {
       continue;
     }
 
-    const sectionId = getLandingSectionId(device.deviceType);
+    const sectionId = getLandingSectionId(device.featuredCategory);
     const items = sections.get(sectionId);
 
     if (!items) {
