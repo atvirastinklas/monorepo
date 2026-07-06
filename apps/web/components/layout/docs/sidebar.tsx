@@ -159,14 +159,11 @@ export function SidebarSeparator({ className, style, children, ...props }: Compo
   return (
     <Base.SidebarSeparator
       className={cn(
-        'inline-flex items-center gap-2 mb-1 px-2 mt-6 empty:mb-0 [&_svg]:size-4 [&_svg]:shrink-0',
+        'inline-flex items-center gap-2 mb-1 mt-6 empty:mb-0 [&_svg]:size-4 [&_svg]:shrink-0',
         depth === 0 && 'first:mt-0',
         className,
       )}
-      style={{
-        paddingInlineStart: getItemOffset(depth),
-        ...style,
-      }}
+      style={style}
       {...props}
     >
       {children}

@@ -12,7 +12,7 @@ const { provider } = defineI18nUI(docsI18n, {
   translations: {
     lt: {
       displayName: "Lietuvių",
-      search: "Ieškoti",
+      search: "Ieškoti žinyne",
       toc: "Turinys",
       editOnGithub: "Redaguoti GitHub",
       previousPage: "Ankstesnis puslapis",

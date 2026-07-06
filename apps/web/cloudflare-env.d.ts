@@ -5,5 +5,3 @@ declare global {
     DB: D1Database;
   }
 }
-
-export {};

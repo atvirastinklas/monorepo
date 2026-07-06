@@ -51,6 +51,7 @@ interface SidebarOptions
 
   banner?: ReactNode;
   footer?: ReactNode;
+  treeTitle?: ReactNode;
 
   /**
    * Support collapsing the sidebar on desktop mode
@@ -92,7 +93,7 @@ export function DocsLayout({
   const { menuItems } = useLinkItems(props);
 
   function sidebar() {
-    const { footer, banner, collapsible = true, component, components, ...rest } = sidebarProps;
+    const { footer, banner, collapsible = true, component, components, treeTitle, ...rest } = sidebarProps;
     if (component) return component;
 
     const iconLinks = menuItems.filter((item) => item.type === 'icon');
@@ -103,6 +104,11 @@ export function DocsLayout({
           .map((item, i, list) => (
             <SidebarLinkItem key={i} item={item} className={cn(i === list.length - 1 && 'mb-4')} />
           ))}
+        {treeTitle && (
+          <p className="text-md pb-2 font-bold text-fd-muted-foreground [&+p]:mt-0">
+            {treeTitle}
+          </p>
+        )}
         <SidebarPageTree {...components} />
       </SidebarViewport>
     );
@@ -137,7 +143,7 @@ export function DocsLayout({
           </div>
           {viewport}
           {(i18n || iconLinks.length > 0 || themeSwitch?.enabled !== false || footer) && (
-            <div className="flex flex-col border-t p-4 pt-2 empty:hidden">
+            <div className="flex flex-col border-t empty:hidden">
               <div className="flex text-fd-muted-foreground items-center empty:hidden">
                 {/* {i18n && (
                   <LanguageToggle>
@@ -208,7 +214,7 @@ export function DocsLayout({
             {banner}
           </div>
           {viewport}
-          <div className="flex flex-col border-t p-4 pt-2 empty:hidden">{footer}</div>
+          <div className="flex flex-col border-t p-4 empty:hidden">{footer}</div>
         </SidebarDrawer>
       </>
     );

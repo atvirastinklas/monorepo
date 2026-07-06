@@ -12,6 +12,7 @@
       "**/.turbo/**",
       "**/.source/**",
       "**/.open-next/**",
+      "**/.content-collections/**",
       "**/pnpm-lock.yaml"
     ]
   },

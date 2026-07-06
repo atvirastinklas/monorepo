@@ -15,6 +15,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = [
     { href: "/zinynas", label: t("menu.docs") },
+    { href: "/zinynas/iranga", label: t("menu.device-catalog") },
     { href: "/blogas", label: t("menu.blog") },
     { href: "/galerija", label: t("menu.gallery") },
   ];
