@@ -193,6 +193,21 @@ export async function getMeshcoreRepeaterStats(
   return { regions, total };
 }
 
+export async function runMeshcoreRepeaterSyncJob(
+  database: D1Database,
+): Promise<
+  { ok: true; result: SyncMeshcoreRepeatersResult } | { ok: false; error: unknown }
+> {
+  try {
+    const result = await syncMeshcoreRepeaters(database);
+    console.info("MeshCore CoreScope repeater sync completed", result);
+    return { ok: true, result };
+  } catch (error) {
+    console.error("MeshCore CoreScope repeater sync failed", error);
+    return { ok: false, error };
+  }
+}
+
 export async function syncMeshcoreRepeaters(
   database: D1Database,
   options: {
