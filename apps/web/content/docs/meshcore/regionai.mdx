@@ -1,12 +1,104 @@
 ---
 title: Lietuvos Regionai
-description: Lietuvos regionų paskirstymas pagal IATA kodą
+description: Lietuvos MeshCore regionų struktūra ir retransliatoriaus konfigūravimas
 ---
 
-Lietuvos teritorija suskirstyta į regionus grupuojant apskritis priskiriant tarptautinio oro uosto IATA kodą:
-- VNO - Rytų Lietuva (Vilniaus, Utenos apskritys)
-- KUN - Pietų Lietuva (Kauno, Marijampolės, Alytaus apskritys)
-- PLQ - Vakarų Lietuva (Klaipėdos, Telšių, Tauragės apskritys)
-- SQQ - Šiaurės Lietuva (Šiaulių, Panevėžio apskritys)
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+
+MeshCore regionai yra skirti segmentuoti tinklą, sumažinant neaktualių paketų srautą iš kitų regionų. Lietuvoje regionai naudojami hierarchiškai, vis siaurinant teritoriją.
+
+```text
+eu                          Europa
+└── lt                      Lietuva
+    └── {iata}              IATA regionas
+        └── {apskritis}     Apskrities kodas
+            └── {miestas}   Apskrities miesto kodas
+```
+
+Žemėlapyje spustelėkite savo retransliatoriaus teritoriją, kad pamatytumėte rekomenduojamą regionų struktūrą.
 
 <NamingRegionMap />
+
+## Retransliatoriaus konfigūravimas
+
+<Steps>
+<Step>
+### 1. Nustatykite regionų struktūrą
+
+<Tabs items={["MeshCore v1.16.0 ir naujesnė", "Senesnė nei v1.16.0"]}>
+<Tab value="MeshCore v1.16.0 ir naujesnė">
+Trumpa `region def` komanda sukuria pagrindinę struktūrą. Pavyzdys Kauno miesto retransliatoriui:
+
+```text
+region def eu lt kun ka km
+```
+
+</Tab>
+<Tab value="Senesnė nei v1.16.0">
+Pagrindinę struktūrą sukurkite po vieną lygį. Pavyzdys Kauno miesto retransliatoriui:
+
+```text
+region put eu *
+region put lt eu
+region put kun lt
+region put ka kun
+region put km ka
+```
+
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+### 2. Nustatykite numatytą regioną
+
+Šis nustatymas nurodys, kad pačio retransliatoriaus siunčiami paketai bus siunčiami nurodytame regione. Šiuo metu nustatykite numatytąją sritį kaip `*`, t.y. visas MeshCore tinklas.
+
+<Callout type="info">
+Kai visi Lietuvoje esantys retransliatoriai bus sukonfigūruoti nauja regionu struktūra, šis nustatymas turės būt nustatytas į `lt` regioną.
+</Callout>
+
+```text
+region default *
+```
+
+</Step>
+
+<Step>
+### 3. Išsaugokite nustatymus
+
+```text
+region save
+```
+</Step>
+
+<Step>
+### 4. Patikrinkite struktūrą
+
+```text
+regions
+```
+</Step>
+
+</Steps>
+
+### Regionų šalinimas
+
+Jeigu nepavyko teisingai sukonfigūruoti regionų struktūrą, reikės pašalinti kiekvieną regioną atskirai naudojant komandą `region remove`.
+
+
+```text
+region remove km
+region remove ka
+```
+
+<Callout type="warning">
+Regionus galima šalinti tiktai nuo struktūros apačios.
+</Callout>
+
+
+## Naudingos Nuorodos
+- [Oficiali MeshCore CLI regionų valdymo dokumentacija](https://docs.meshcore.io/cli_commands/#region-management-v110).
+

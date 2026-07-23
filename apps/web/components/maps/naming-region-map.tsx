@@ -94,6 +94,7 @@ const scopePolygonFilter: FilterSpecification = ["==", "$type", "Polygon"];
 const scopePolygonLabelFilter: FilterSpecification = [
   "all",
   ["==", "$type", "Polygon"],
+  ["!=", "mc:region", "lt"],
   ["!in", "mc:region", ...cityRegionCodes],
   ["!in", "mc:region", ...iataRegionCodes],
 ];
@@ -135,147 +136,146 @@ export const NamingRegionMap = () => {
   };
 
   return (
-    <div className="not-prose mb-8 rounded-2xl border bg-card/70 p-5 shadow-sm">
-      <p className="mb-3 text-sm text-muted-foreground">
-        Spustelėkite žemėlapio sritį, kad pamatytumėte jai nustatytiną MeshCore apimtį.
-      </p>
-      <div className="h-120 overflow-hidden rounded-xl border">
-        <MapLibre
-          initialViewState={{
-            bounds: [
-              [19.5, 53.2],
-              [28.0, 57.2],
-            ],
-            fitBoundsOptions: { padding: 40 },
-          }}
-          maxBounds={lithuaniaBounds}
-          mapStyle={mapStyle(theme)}
-          interactiveLayerIds={[scopeFillLayerId]}
-          cursor={isHoveringScope ? "pointer" : "grab"}
-          onClick={handleScopeClick}
-          onMouseMove={(event) => setIsHoveringScope(Boolean(event.features?.length))}
-          onMouseLeave={() => setIsHoveringScope(false)}
-        >
-          <MapSource id={scopesSourceId} data="/assets/map/mc-scopes.geojson" type="geojson">
-            <MapLayer
-              id={scopeFillLayerId}
-              type="fill"
-              filter={scopePolygonFilter}
-              paint={{
-                "fill-color": regionFillColorExpression,
-                "fill-opacity": 0.2,
-              }}
-            />
-            <MapLayer
-              id="mc-scopes-outline"
-              type="line"
-              filter={scopePolygonFilter}
-              paint={{
-                "line-color": regionAccentColorExpression,
-                "line-width": 1.75,
-                "line-opacity": 0.95,
-              }}
-            />
-            <MapLayer
-              id="mc-scopes-region-polygon-label"
-              type="symbol"
-              filter={scopePolygonLabelFilter}
-              layout={{
-                "text-field": "{mc:region}",
-                "text-size": 13,
-                "text-font": ["Open Sans Bold", "Noto Sans Regular"],
-                "text-allow-overlap": true,
-                "text-ignore-placement": true,
-                "text-anchor": "center",
-              }}
-              paint={{
-                "text-color": isLightTheme ? "#0f172a" : "#f8fafc",
-                "text-halo-color": isLightTheme
-                  ? "rgba(248, 250, 252, 0.95)"
-                  : "rgba(2, 6, 23, 0.95)",
-                "text-halo-width": 1.5,
-              }}
-            />
-            <MapLayer
-              id="mc-scopes-region-city-label"
-              type="symbol"
-              filter={scopePointLabelFilter}
-              layout={{
-                "text-field": "{mc:region}",
-                "text-size": 13,
-                "text-font": ["Open Sans Bold", "Noto Sans Regular"],
-                "text-allow-overlap": true,
-                "text-ignore-placement": true,
-                "text-anchor": "center",
-              }}
-              paint={{
-                "text-color": isLightTheme ? "#0f172a" : "#f8fafc",
-                "text-halo-color": isLightTheme
-                  ? "rgba(248, 250, 252, 0.95)"
-                  : "rgba(2, 6, 23, 0.95)",
-                "text-halo-width": 1.5,
-              }}
-            />
-          </MapSource>
-          <MapSource id={regionMarkerSourceId} data={regionMarkerPoints} type="geojson">
-            <MapLayer
-              id="mc-region-marker-iata"
-              type="symbol"
-              layout={{
-                "text-field": "{iata_code}",
-                "text-size": 24,
-                "text-font": ["Open Sans Bold", "Noto Sans Regular"],
-                "text-allow-overlap": true,
-                "text-ignore-placement": true,
-                "text-anchor": "center",
-              }}
-              paint={{
-                "text-color": "#f8fafc",
-                "text-halo-color": "rgba(2, 6, 23, 0.92)",
-                "text-halo-width": 2,
-              }}
-            />
-            <MapLayer
-              id="mc-region-marker-name"
-              type="symbol"
-              layout={{
-                "text-field": "{name}",
-                "text-size": 11,
-                "text-font": ["Montserrat Regular", "Open Sans Regular", "Noto Sans Regular"],
-                "text-allow-overlap": true,
-                "text-ignore-placement": true,
-                "text-anchor": "top",
-                "text-offset": [0, 2.2],
-              }}
-              paint={{
-                "text-color": isLightTheme ? "#0f172a" : "#e2e8f0",
-                "text-halo-color": isLightTheme
-                  ? "rgba(248, 250, 252, 0.92)"
-                  : "rgba(2, 6, 23, 0.95)",
-                "text-halo-width": 1.5,
-              }}
-            />
-          </MapSource>
-          {selectedScope ? (
-            <MapPopup
-              longitude={selectedScope.longitude}
-              latitude={selectedScope.latitude}
-              anchor="bottom"
-              className="scope-map-popup"
-              closeOnClick={false}
-              onClose={() => setSelectedScope(null)}
-            >
-              <div className="min-w-52 p-1 text-sm">
-                <p className="font-semibold">{selectedScope.displayName}</p>
-                <p className="mt-2 text-xs text-muted-foreground">Nustatykite apimtis:</p>
-                <code className="mt-1 block select-all rounded-md bg-muted px-2 py-1.5 font-medium text-foreground">
-                  eu {selectedScope.scopes}
-                </code>
+    <div className="h-120 overflow-hidden rounded-xl border">
+      <MapLibre
+        initialViewState={{
+          bounds: [
+            [19.5, 53.2],
+            [28.0, 57.2],
+          ],
+          fitBoundsOptions: { padding: 40 },
+        }}
+        maxBounds={lithuaniaBounds}
+        mapStyle={mapStyle(theme)}
+        interactiveLayerIds={[scopeFillLayerId]}
+        cursor={isHoveringScope ? "pointer" : "grab"}
+        onClick={handleScopeClick}
+        onMouseMove={(event) => setIsHoveringScope(Boolean(event.features?.length))}
+        onMouseLeave={() => setIsHoveringScope(false)}
+      >
+        <MapSource id={scopesSourceId} data="/assets/map/mc-scopes.geojson" type="geojson">
+          <MapLayer
+            id={scopeFillLayerId}
+            type="fill"
+            filter={scopePolygonFilter}
+            paint={{
+              "fill-color": regionFillColorExpression,
+              "fill-opacity": 0.2,
+            }}
+          />
+          <MapLayer
+            id="mc-scopes-outline"
+            type="line"
+            filter={scopePolygonFilter}
+            paint={{
+              "line-color": regionAccentColorExpression,
+              "line-width": 1.75,
+              "line-opacity": 0.95,
+            }}
+          />
+          <MapLayer
+            id="mc-scopes-region-polygon-label"
+            type="symbol"
+            filter={scopePolygonLabelFilter}
+            layout={{
+              "text-field": "{mc:region}",
+              "text-size": 13,
+              "text-font": ["Open Sans Bold", "Noto Sans Regular"],
+              "text-allow-overlap": true,
+              "text-ignore-placement": true,
+              "text-anchor": "center",
+            }}
+            paint={{
+              "text-color": isLightTheme ? "#0f172a" : "#f8fafc",
+              "text-halo-color": isLightTheme
+                ? "rgba(248, 250, 252, 0.95)"
+                : "rgba(2, 6, 23, 0.95)",
+              "text-halo-width": 1.5,
+            }}
+          />
+          <MapLayer
+            id="mc-scopes-region-city-label"
+            type="symbol"
+            filter={scopePointLabelFilter}
+            layout={{
+              "text-field": "{mc:region}",
+              "text-size": 13,
+              "text-font": ["Open Sans Bold", "Noto Sans Regular"],
+              "text-allow-overlap": true,
+              "text-ignore-placement": true,
+              "text-anchor": "center",
+            }}
+            paint={{
+              "text-color": isLightTheme ? "#0f172a" : "#f8fafc",
+              "text-halo-color": isLightTheme
+                ? "rgba(248, 250, 252, 0.95)"
+                : "rgba(2, 6, 23, 0.95)",
+              "text-halo-width": 1.5,
+            }}
+          />
+        </MapSource>
+        <MapSource id={regionMarkerSourceId} data={regionMarkerPoints} type="geojson">
+          <MapLayer
+            id="mc-region-marker-iata"
+            type="symbol"
+            layout={{
+              "text-field": "{iata_code}",
+              "text-size": 24,
+              "text-font": ["Open Sans Bold", "Noto Sans Regular"],
+              "text-allow-overlap": true,
+              "text-ignore-placement": true,
+              "text-anchor": "center",
+            }}
+            paint={{
+              "text-color": "#f8fafc",
+              "text-halo-color": "rgba(2, 6, 23, 0.92)",
+              "text-halo-width": 2,
+            }}
+          />
+          <MapLayer
+            id="mc-region-marker-name"
+            type="symbol"
+            layout={{
+              "text-field": "{name}",
+              "text-size": 11,
+              "text-font": ["Montserrat Regular", "Open Sans Regular", "Noto Sans Regular"],
+              "text-allow-overlap": true,
+              "text-ignore-placement": true,
+              "text-anchor": "top",
+              "text-offset": [0, 2.2],
+            }}
+            paint={{
+              "text-color": isLightTheme ? "#0f172a" : "#e2e8f0",
+              "text-halo-color": isLightTheme
+                ? "rgba(248, 250, 252, 0.92)"
+                : "rgba(2, 6, 23, 0.95)",
+              "text-halo-width": 1.5,
+            }}
+          />
+        </MapSource>
+        {selectedScope ? (
+          <MapPopup
+            longitude={selectedScope.longitude}
+            latitude={selectedScope.latitude}
+            anchor="bottom"
+            className="scope-map-popup"
+            closeOnClick={false}
+            onClose={() => setSelectedScope(null)}
+          >
+            <div className="flex min-w-52 flex-col gap-1 text-sm">
+              <div className="flex flex-col gap-0.5">
+                <p className="!m-0 font-semibold">{selectedScope.displayName}</p>
+                <p className="!m-0 text-xs text-muted-foreground">
+                  MeshCore regionų struktūra:
+                </p>
               </div>
-            </MapPopup>
-          ) : null}
-        </MapLibre>
-      </div>
+              <code className="block select-all rounded-md bg-muted px-2 py-1 font-medium text-foreground">
+                eu {selectedScope.scopes}
+              </code>
+            </div>
+          </MapPopup>
+        ) : null}
+      </MapLibre>
     </div>
   );
 };
