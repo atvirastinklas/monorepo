@@ -2,3 +2,31 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "@workspace/map/styles.css";
+
+.scope-map-popup .maplibregl-popup-content {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.25);
+}
+
+.scope-map-popup .maplibregl-popup-close-button {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 0 0.75rem 0 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.scope-map-popup .maplibregl-popup-close-button:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.scope-map-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--card);
+}
