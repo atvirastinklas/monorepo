@@ -1,0 +1,33 @@
+{
+  "name": "api-mc",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "cf-typegen": "wrangler types ./worker-configuration.d.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm -w biome lint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrations:apply:local": "wrangler d1 migrations apply MESHCORE_DB --local",
+    "db:migrations:apply:remote": "wrangler d1 migrations apply MESHCORE_DB --remote",
+    "check": "pnpm run cf-typegen && pnpm run typecheck && pnpm run lint && pnpm run test"
+  },
+  "dependencies": {
+    "@workspace/meshcore": "workspace:*",
+    "kysely": "^0.28.8",
+    "kysely-d1": "^0.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.19.0",
+    "@types/node": "^25.1.0",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10",
+    "wrangler": "4.115.0"
+  }
+}

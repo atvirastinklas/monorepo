@@ -1,0 +1,43 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "api-mc",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-29",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": false,
+	"routes": [
+		{
+			"pattern": "api-mc.atvirastinklas.lt",
+			"custom_domain": true
+		}
+	],
+	"vars": {
+		"CORESCOPE_BASE_URL": "https://meshcore.atvirastinklas.lt"
+	},
+	"d1_databases": [
+		{
+			"binding": "MESHCORE_DB",
+			"database_name": "api-mc",
+			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "api_mc",
+			"database_name": "api-mc",
+			"database_id": "75ddfa09-8622-4331-b664-1d7ba9249a1f"
+		}
+	],
+	"triggers": {
+		"crons": [
+			"*/15 * * * *"
+		]
+	},
+	"cache": {
+		"enabled": true
+	},
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	}
+}

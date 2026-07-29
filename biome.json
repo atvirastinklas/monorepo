@@ -13,7 +13,9 @@
       "**/.source/**",
       "**/.open-next/**",
       "**/.content-collections/**",
-      "**/pnpm-lock.yaml"
+      "**/pnpm-lock.yaml",
+      "**/worker-configuration.d.ts",
+      "**/src/assets/lithuania.json"
     ]
   },
   "formatter": {

@@ -1,0 +1,25 @@
+{
+  "name": "@workspace/meshcore",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "pnpm -w biome lint .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@turf/bbox-polygon": "^7.3.5",
+    "@turf/boolean-intersects": "^7.3.5",
+    "@turf/boolean-point-in-polygon": "^7.3.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
