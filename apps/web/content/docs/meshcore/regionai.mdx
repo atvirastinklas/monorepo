@@ -12,8 +12,7 @@ MeshCore regionai yra skirti segmentuoti tinklą, sumažinant neaktualių paket�
 eu                          Europa
 └── lt                      Lietuva
     └── {iata}              IATA regionas
-        └── {apskritis}     Apskrities kodas
-            └── {miestas}   Apskrities miesto kodas
+        └── {miestas}       Didžiojo miesto kodas (jei taikoma)
 ```
 
 Žemėlapyje spustelėkite savo retransliatoriaus teritoriją, kad pamatytumėte rekomenduojamą regionų struktūrą.
@@ -31,7 +30,7 @@ eu                          Europa
 Trumpa `region def` komanda sukuria pagrindinę struktūrą. Pavyzdys Kauno miesto retransliatoriui:
 
 ```text
-region def eu lt kun ka km
+region def eu lt kun km
 ```
 
 </Tab>
@@ -42,8 +41,7 @@ Pagrindinę struktūrą sukurkite po vieną lygį. Pavyzdys Kauno miesto retrans
 region put eu *
 region put lt eu
 region put kun lt
-region put ka kun
-region put km ka
+region put km kun
 ```
 
 </Tab>
@@ -91,7 +89,7 @@ Jeigu nepavyko teisingai sukonfigūruoti regionų struktūrą, reikės pašalint
 
 ```text
 region remove km
-region remove ka
+region remove kun
 ```
 
 <Callout type="warning">
