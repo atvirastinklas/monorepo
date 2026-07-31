@@ -8,7 +8,16 @@ export async function HeroSection() {
   const t = await getTranslations("HeroSection");
 
   return (
-    <section className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-16 md:grid-cols-2 md:items-center md:py-24">
+    <>
+      <aside className="bg-primary text-primary-foreground">
+        <div className="mx-auto w-full max-w-6xl px-6 py-3 text-center text-sm">
+          {t("announcement.message")}{" "}
+          <Link href="https://naujas.atvirastinklas.lt" className="font-semibold underline underline-offset-4">
+            {t("announcement.linkLabel")}
+          </Link>
+        </div>
+      </aside>
+      <section className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-16 md:grid-cols-2 md:items-center md:py-24">
         <div className="space-y-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             {t("title")}
@@ -37,6 +46,7 @@ export async function HeroSection() {
             />
           </div>
         </div>
-    </section>
+      </section>
+    </>
   );
 }

@@ -25,6 +25,10 @@
       "getStarted": "Prisijunk prie tinklo",
       "map": "Žemėlapis"
     },
+    "announcement": {
+      "message": "Mes dirbame prie atnaujinto žinyno, prie kurio galite prisidėti ir Jūs! Parašykite grupėje dėl noro prisidėti.",
+      "linkLabel": "Naujas tinklapis"
+    },
     "imageAlt": "Mazgas ant vėliavos stulpo su saulės panelėmis"
   },
   "FeaturesSection": {
