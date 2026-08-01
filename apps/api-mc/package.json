@@ -9,7 +9,7 @@
     "deploy:dry-run": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types ./worker-configuration.d.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "pnpm -w biome lint .",
+    "lint": "pnpm exec biome lint src test",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrations:apply:local": "wrangler d1 migrations apply MESHCORE_DB --local",
