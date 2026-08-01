@@ -32,7 +32,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["GeocodeCoordinator"]
+      "new_sqlite_classes": ["GeocodeCoordinator"]
     }
   ],
   "triggers": {
