@@ -27,13 +27,22 @@ import { type FormEvent, type KeyboardEvent, useMemo, useRef, useState } from "r
 
 type Coordinates = { latitude: number; longitude: number };
 type DeviceKind = "repeater" | "observer";
+type LocalityLevel =
+  | "neighbourhood"
+  | "suburb"
+  | "city_district"
+  | "hamlet"
+  | "village"
+  | "town"
+  | "city";
+type GeocodeLocality = { value: string; level: LocalityLevel };
 
 type PlaceCandidate = {
   id: string;
   label: string;
-  name: string;
   latitude: number;
   longitude: number;
+  localities: GeocodeLocality[];
 };
 
 type SearchResponse = { data?: unknown };
@@ -65,13 +74,29 @@ function mapStyle(theme: string | undefined) {
   return `https://basemaps.cartocdn.com/gl/${theme === "light" ? "voyager-gl-style" : "dark-matter-gl-style"}/style.json`;
 }
 
-function nameFromResult(result: Record<string, unknown>) {
-  const address = result.address as Record<string, unknown> | undefined;
-  const localName =
-    address?.suburb ?? address?.city_district ?? address?.village ?? address?.town ?? address?.city;
-  return typeof localName === "string"
-    ? localName
-    : (String(result.name ?? result.display_name ?? "").split(",")[0] ?? "");
+const localityLevelLabels: Record<LocalityLevel, string> = {
+  neighbourhood: "Mikrorajonas",
+  suburb: "Priemiestis",
+  city_district: "Miesto rajonas",
+  hamlet: "Viensėdis",
+  village: "Kaimas",
+  town: "Miestas",
+  city: "Didmiestis",
+};
+
+function parseLocalities(value: unknown): GeocodeLocality[] {
+  const levels = new Set<LocalityLevel>(Object.keys(localityLevelLabels) as LocalityLevel[]);
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const locality = item as Record<string, unknown>;
+    const name = typeof locality.value === "string" ? locality.value.trim() : "";
+    const level = locality.level;
+    return name && typeof level === "string" && levels.has(level as LocalityLevel)
+      ? [{ value: name, level: level as LocalityLevel }]
+      : [];
+  });
 }
 
 function parseCandidates(payload: unknown): PlaceCandidate[] {
@@ -84,19 +109,18 @@ function parseCandidates(payload: unknown): PlaceCandidate[] {
   return rawResults.flatMap((item, index) => {
     if (!item || typeof item !== "object") return [];
     const result = item as Record<string, unknown>;
-    const latitude = Number(result.latitude ?? result.lat);
-    const longitude = Number(result.longitude ?? result.lon ?? result.lng);
-    const label = String(result.display_name ?? result.label ?? result.name ?? "");
-    const name = nameFromResult(result).trim();
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !label || !name) return [];
+    const latitude = Number(result.latitude);
+    const longitude = Number(result.longitude);
+    const label = typeof result.label === "string" ? result.label.trim() : "";
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !label) return [];
 
     return [
       {
-        id: String(result.id ?? result.place_id ?? index),
+        id: typeof result.id === "string" ? result.id : String(index),
         label,
-        name,
         latitude,
         longitude,
+        localities: parseLocalities(result.localities),
       },
     ];
   });
@@ -154,7 +178,11 @@ export function NamingLocationHelper() {
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [search, setSearch] = useState("");
   const [candidates, setCandidates] = useState<PlaceCandidate[]>([]);
-  const [selectedCandidate, setSelectedCandidate] = useState<PlaceCandidate | null>(null);
+  const [localities, setLocalities] = useState<GeocodeLocality[]>([]);
+  const [selectedLocality, setSelectedLocality] = useState<string | null>(null);
+  const [localityState, setLocalityState] = useState<"idle" | "loading" | "success" | "error">(
+    "idle",
+  );
   const [code, setCode] = useState<NamingCode | null>(null);
   const [place, setPlace] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -188,7 +216,7 @@ export function NamingLocationHelper() {
   const needsShortening = Boolean(
     suggestedNames && (!suggestedNames.repeater.fits || !suggestedNames.observer.fits),
   );
-  const localityOptions = useMemo(
+  const shorteningOptions = useMemo(
     () =>
       needsShortening && code
         ? suggestLocalityOptions({
@@ -202,16 +230,16 @@ export function NamingLocationHelper() {
   );
   const activeSuggestion = suggestedNames?.[activeKind];
 
-  const setPin = async (nextCoordinates: Coordinates, candidate?: PlaceCandidate) => {
+  const setPin = async (nextCoordinates: Coordinates) => {
     const revision = ++selectionRevision.current;
     setLocationError("");
     setCode(null);
-
-    if (!candidate) {
-      setSelectedCandidate(null);
-      setCandidates([]);
-      setPlace("");
-    }
+    setCandidates([]);
+    setHasSearched(false);
+    setLocalities([]);
+    setSelectedLocality(null);
+    setPlace("");
+    setLocalityState("loading");
 
     // The pin moves immediately. Errors stay in an overlay so the map never reflows.
     setCoordinates(nextCoordinates);
@@ -225,6 +253,7 @@ export function NamingLocationHelper() {
         if (revision === selectionRevision.current) {
           setCoordinates(lastValidCoordinates.current);
           setLocationError("Pasirinkite vietą Lietuvos teritorijoje.");
+          setLocalityState("idle");
         }
         return;
       }
@@ -237,14 +266,6 @@ export function NamingLocationHelper() {
         setLocationError("Šiai vietai nepavyko parinkti vietovės kodo.");
       } else {
         setCode(prefix.code);
-      }
-
-      if (candidate) {
-        setSelectedCandidate(candidate);
-        setPlace(candidate.name);
-        setCandidates([]);
-        setHasSearched(false);
-        setSearch(candidate.label);
       }
 
       const response = await fetch("/api/geocode/reverse", {
@@ -265,26 +286,24 @@ export function NamingLocationHelper() {
         } else {
           setLocationError("Nepavyko nustatyti vietovės. Bandykite dar kartą.");
         }
+        setLocalityState("error");
         return;
       }
 
       const reverseCandidates = parseCandidates(await response.json());
       if (revision !== selectionRevision.current) return;
-      const selected = reverseCandidates[0];
-      if (!candidate && selected) {
-        setSelectedCandidate(selected);
-        setPlace(selected.name);
-        setCandidates(reverseCandidates);
-      }
+      setLocalities(reverseCandidates[0]?.localities ?? []);
+      setLocalityState("success");
     } catch {
       if (revision === selectionRevision.current) {
         setLocationError("Nepavyko patikrinti vietos. Bandykite dar kartą.");
+        setLocalityState("error");
       }
     }
   };
 
   const chooseCandidate = (candidate: PlaceCandidate) => {
-    void setPin({ latitude: candidate.latitude, longitude: candidate.longitude }, candidate);
+    void setPin({ latitude: candidate.latitude, longitude: candidate.longitude });
   };
 
   const submitSearch = async (event: FormEvent<HTMLFormElement>) => {
@@ -456,7 +475,9 @@ export function NamingLocationHelper() {
                       onClick={() => chooseCandidate(candidate)}
                       className="block w-full border-b px-3 py-2.5 text-left text-sm transition-colors last:border-b-0 hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
                     >
-                      <span className="block font-medium">{candidate.name}</span>
+                      <span className="block font-medium">
+                        {candidate.localities[0]?.value ?? candidate.label}
+                      </span>
                       <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                         {candidate.label}
                       </span>
@@ -502,27 +523,84 @@ export function NamingLocationHelper() {
       </div>
 
       <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] sm:p-6">
-        <div>
-          <label className="text-sm font-bold" htmlFor="naming-location-place">
-            Vietovės pavadinimas
-          </label>
-          <input
-            id="naming-location-place"
-            value={place}
-            onChange={(event) => {
-              setPlace(event.target.value);
-              setSelectedCandidate(null);
-            }}
-            placeholder="Pvz., Žvėrynas"
-            aria-invalid={hasPlaceError}
-            aria-describedby="naming-location-place-hint"
-            className="mt-2 h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-          <p id="naming-location-place-hint" className="mt-1.5 text-xs text-muted-foreground">
-            {selectedCandidate
-              ? "Vietovė pasiūlyta pagal pasirinktą tašką. Jei reikia, pataisykite ją čia."
-              : "Vietovę parinksime pagal tašką; pavadinimą visada galite įrašyti patys."}
-          </p>
+        <div className="min-w-0">
+          <fieldset aria-describedby="naming-locality-guidance">
+            <legend className="text-sm font-bold">Vietovė</legend>
+            <p id="naming-locality-guidance" className="mt-1.5 text-xs text-muted-foreground">
+              Pasirinkite vieną vietovės lygį pagal pažymėtą tašką arba įrašykite pavadinimą ranka.
+            </p>
+
+            {localityState === "loading" ? (
+              <p className="mt-3 border-l-2 border-primary pl-3 text-sm" aria-live="polite">
+                Nustatomi vietovės lygiai…
+              </p>
+            ) : null}
+
+            {localityState === "success" && localities.length > 0 ? (
+              <div className="mt-3 divide-y border-y">
+                {localities.map((locality, index) => {
+                  const id = `naming-locality-${index}`;
+                  return (
+                    <label
+                      key={`${locality.level}-${locality.value}`}
+                      htmlFor={id}
+                      className="flex cursor-pointer items-center gap-3 py-2.5 text-sm transition-colors hover:bg-muted/60 focus-within:bg-muted/60"
+                    >
+                      <input
+                        id={id}
+                        type="radio"
+                        name="naming-locality"
+                        value={locality.value}
+                        checked={selectedLocality === `${locality.level}:${locality.value}`}
+                        onChange={() => {
+                          setSelectedLocality(`${locality.level}:${locality.value}`);
+                          setPlace(locality.value);
+                        }}
+                        className="ml-0.5 size-4 shrink-0 accent-primary"
+                      />
+                      <span className="min-w-0 flex-1 font-medium">{locality.value}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {localityLevelLabels[locality.level]}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {coordinates && localityState === "success" && localities.length === 0 ? (
+              <p className="mt-3 border-l-2 border-muted-foreground/40 pl-3 text-sm text-muted-foreground">
+                Šiam taškui vietovės lygių nerasta. Įrašykite pavadinimą ranka.
+              </p>
+            ) : null}
+
+            {localityState === "error" ? (
+              <p className="mt-3 border-l-2 border-destructive pl-3 text-sm text-destructive">
+                Vietovės lygių nustatyti nepavyko. Įrašykite pavadinimą ranka.
+              </p>
+            ) : null}
+          </fieldset>
+
+          <div className="mt-4 border-t pt-4">
+            <label className="text-sm font-semibold" htmlFor="naming-location-place">
+              Vietovės pavadinimas ranka
+            </label>
+            <input
+              id="naming-location-place"
+              value={place}
+              onChange={(event) => {
+                setPlace(event.target.value);
+                setSelectedLocality(null);
+              }}
+              placeholder="Pvz., Žvėrynas"
+              aria-invalid={hasPlaceError}
+              aria-describedby="naming-location-place-hint"
+              className="mt-2 h-9 w-full border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
+            <p id="naming-location-place-hint" className="mt-1.5 text-xs text-muted-foreground">
+              Pasirinkus lygį jo pavadinimas perkeliamas čia; šį lauką galite bet kada pakeisti.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-3">
@@ -549,7 +627,7 @@ export function NamingLocationHelper() {
               )}
             >
               {hasIdentifierError
-                ? "Reikia 4 simbolių: 0–9, A–F."
+                ? "Reikia 4 simbolių: 0-9, A-F."
                 : cleanIdentifier
                   ? "Public Key pradžia."
                   : "Tuščias laukas naudoja FFFF."}
@@ -676,13 +754,16 @@ export function NamingLocationHelper() {
                 Sutrumpinus vietovę išlaikomas tas pats vietos ir įrenginio ID ryšys.
               </p>
             </div>
-            {localityOptions.length > 0 ? (
+            {shorteningOptions.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-2">
-                {localityOptions.map((option) => (
+                {shorteningOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setPlace(option.value)}
+                    onClick={() => {
+                      setPlace(option.value);
+                      setSelectedLocality(null);
+                    }}
                     className="rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <span className="block font-medium text-foreground">{option.value}</span>

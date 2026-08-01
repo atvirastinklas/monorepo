@@ -1,10 +1,14 @@
 export type GeocodeResult = {
   id: string;
   label: string;
-  name: string;
   latitude: number;
   longitude: number;
-  address: Record<string, string | undefined>;
+  localities: GeocodeLocality[];
+};
+
+export type GeocodeLocality = {
+  value: string;
+  level: "neighbourhood" | "suburb" | "city_district" | "hamlet" | "village" | "town" | "city";
 };
 
 type NominatimResult = {
@@ -16,6 +20,30 @@ type NominatimResult = {
   lon?: string;
   address?: Record<string, unknown>;
 };
+
+const localityLevels = [
+  "neighbourhood",
+  "suburb",
+  "city_district",
+  "hamlet",
+  "village",
+  "town",
+  "city",
+] as const satisfies GeocodeLocality["level"][];
+
+function localitiesFromAddress(address: Record<string, string | undefined>): GeocodeLocality[] {
+  const seen = new Set<string>();
+
+  return localityLevels.flatMap((level) => {
+    const value = address[level]?.trim().replace(/\s+/g, " ").normalize("NFC");
+    if (!value) return [];
+
+    const key = value.toLocaleLowerCase("lt-LT");
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{ value, level }];
+  });
+}
 
 function toResult(result: NominatimResult): GeocodeResult | null {
   const latitude = Number(result.lat);
@@ -35,18 +63,9 @@ function toResult(result: NominatimResult): GeocodeResult | null {
   return {
     id: `${result.osm_type ?? "N"}${result.osm_id}`,
     label,
-    name:
-      result.name?.trim() ||
-      address.neighbourhood ||
-      address.suburb ||
-      address.village ||
-      address.town ||
-      address.city ||
-      label.split(",")[0] ||
-      label,
     latitude,
     longitude,
-    address,
+    localities: localitiesFromAddress(address),
   };
 }
 
