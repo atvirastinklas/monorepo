@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   ).fetch("https://geocode.internal/", {
     method: "POST",
     body: JSON.stringify({
-      cacheKey: `reverse:v1:${latitude.toFixed(5)}:${longitude.toFixed(5)}`,
+      cacheKey: `reverse:v2:${latitude.toFixed(5)}:${longitude.toFixed(5)}`,
       upstreamUrl: createReverseUrl(latitude, longitude),
     }),
   });

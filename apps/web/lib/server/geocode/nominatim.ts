@@ -89,7 +89,10 @@ export function createReverseUrl(latitude: number, longitude: number) {
     lon: String(longitude),
     format: "jsonv2",
     addressdetails: "1",
-    zoom: "16",
+    // At street level Nominatim may assign a nearby settlement (Daukšiai) instead of the
+    // settlement containing the point (Tubiai). Locality-level reverse geocoding returns
+    // the named village/town/suburb users need for the MeshCore location component.
+    zoom: "14",
     "accept-language": "lt",
   }).toString();
   return url.toString();
