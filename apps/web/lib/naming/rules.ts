@@ -1,27 +1,20 @@
-export const namingScopes = [
-  { county: "Alytaus apskritis", countyCode: "AA", city: "Alytaus miestas", cityCode: "AM" },
-  { county: "Kauno apskritis", countyCode: "KA", city: "Kauno miestas", cityCode: "KM" },
-  { county: "Klaipėdos apskritis", countyCode: "LA", city: "Klaipėdos miestas", cityCode: "LM" },
-  {
-    county: "Marijampolės apskritis",
-    countyCode: "MA",
-    city: "Marijampolės miestas",
-    cityCode: "MM",
-  },
-  { county: "Panevėžio apskritis", countyCode: "PA", city: "Panevėžio miestas", cityCode: "PM" },
-  { county: "Šiaulių apskritis", countyCode: "SA", city: "Šiaulių miestas", cityCode: "SM" },
-  { county: "Tauragės apskritis", countyCode: "TA", city: "Tauragės miestas", cityCode: "TM" },
-  { county: "Telšių apskritis", countyCode: "EA", city: "Telšių miestas", cityCode: "EM" },
-  { county: "Utenos apskritis", countyCode: "UA", city: "Utenos miestas", cityCode: "UM" },
-  { county: "Vilniaus apskritis", countyCode: "VA", city: "Vilniaus miestas", cityCode: "VM" },
-] as const;
-
 export const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
 
-export type NamingCode =
-  | (typeof namingScopes)[number]["countyCode"]
-  | (typeof namingScopes)[number]["cityCode"];
+export type NamingCode = string;
 export type Direction = (typeof directions)[number];
+export type DeviceKind = "repeater" | "observer";
+
+export type NameSuggestion = {
+  value: string;
+  bytes: number;
+  fits: boolean;
+};
+
+export type LocalityOption = {
+  value: string;
+  strategy: "original" | "without-descriptor" | "abbreviated" | "shortened";
+  suggestions: Record<DeviceKind, NameSuggestion>;
+};
 
 export function normalizeIdentifier(value: string) {
   return value.trim().toUpperCase();
@@ -29,6 +22,15 @@ export function normalizeIdentifier(value: string) {
 
 export function isRepeaterIdentifier(value: string) {
   return /^[0-9A-F]{4}$/.test(value);
+}
+
+export function utf8Bytes(value: string) {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function nameSuggestion(value: string): NameSuggestion {
+  const bytes = utf8Bytes(value);
+  return { value, bytes, fits: bytes <= 31 };
 }
 
 export function createSuggestedNames({
@@ -41,11 +43,87 @@ export function createSuggestedNames({
   place: string;
   identifier: string;
   direction?: Direction;
-}) {
-  const base = `LT-${code} ${place.trim()} ${normalizeIdentifier(identifier)}`;
+}): Record<DeviceKind, NameSuggestion> {
+  const normalizedPlace = place.trim().normalize("NFC");
+  const normalizedIdentifier = normalizeIdentifier(identifier);
+  const repeater = [`LT-${code}`, normalizedPlace, normalizedIdentifier, direction]
+    .filter(Boolean)
+    .join(" ");
+  const observer = `LT-${code} ${normalizedPlace} ${normalizedIdentifier.slice(0, 2)} OBS`;
 
-  return {
-    repeater: [base, direction].filter(Boolean).join(" "),
-    observer: `LT-${code} ${place.trim()} ${normalizeIdentifier(identifier).slice(0, 2)} OBS`,
-  };
+  return { repeater: nameSuggestion(repeater), observer: nameSuggestion(observer) };
+}
+
+function abbreviateWord(word: string) {
+  const firstCharacter = Array.from(word)[0];
+  return firstCharacter ? `${firstCharacter}.` : word;
+}
+
+function truncateToBytes(value: string, budget: number) {
+  let result = "";
+  for (const character of Array.from(value)) {
+    if (utf8Bytes(`${result}${character}.`) > budget) break;
+    result += character;
+  }
+  return result && result !== value ? `${result}.` : result;
+}
+
+function localityAlternatives(value: string) {
+  const normalized = value.trim().replace(/\s+/g, " ").normalize("NFC");
+  const alternatives: Array<[string, LocalityOption["strategy"]]> = [[normalized, "original"]];
+  const withoutDescriptor = normalized.replace(
+    /\s+(?:miestas|miestelis|kaimas|gyvenvietė|seniūnija)$/iu,
+    "",
+  );
+  if (withoutDescriptor !== normalized)
+    alternatives.push([withoutDescriptor, "without-descriptor"]);
+
+  const words = withoutDescriptor.split(" ");
+  for (let count = 1; count < words.length; count += 1) {
+    alternatives.push([
+      [...words.slice(0, count).map(abbreviateWord), ...words.slice(count)].join(" "),
+      "abbreviated",
+    ]);
+  }
+
+  return alternatives;
+}
+
+export function suggestLocalityOptions({
+  code,
+  locality,
+  identifier,
+  direction,
+}: {
+  code: NamingCode;
+  locality: string;
+  identifier: string;
+  direction?: Direction;
+}): LocalityOption[] {
+  const options = localityAlternatives(locality)
+    .map(([value, strategy]) => ({
+      value,
+      strategy,
+      suggestions: createSuggestedNames({ code, place: value, identifier, direction }),
+    }))
+    .filter((option) => option.suggestions.repeater.fits && option.suggestions.observer.fits);
+
+  if (options.length > 0) {
+    return options.filter(
+      (option, index, all) =>
+        all.findIndex((candidate) => candidate.value === option.value) === index,
+    );
+  }
+
+  const fixedBytes = Math.max(
+    utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier)}${direction ? ` ${direction}` : ""}`),
+    utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier).slice(0, 2)} OBS`),
+  );
+  const shortened = truncateToBytes(locality.trim().normalize("NFC"), 31 - fixedBytes);
+  if (!shortened) return [];
+
+  const suggestions = createSuggestedNames({ code, place: shortened, identifier, direction });
+  return suggestions.repeater.fits && suggestions.observer.fits
+    ? [{ value: shortened, strategy: "shortened", suggestions }]
+    : [];
 }

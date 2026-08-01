@@ -1,12 +1,14 @@
 "use client";
 
-import { findCodeFromAddress, findCountyCode, isWithinLithuania } from "@/lib/naming/boundaries";
+import { findSuggestedPrefix, isWithinLithuania } from "@/lib/naming/boundaries";
 import {
   type Direction,
+  type LocalityOption,
   type NamingCode,
   createSuggestedNames,
   isRepeaterIdentifier,
   normalizeIdentifier,
+  suggestLocalityOptions,
 } from "@/lib/naming/rules";
 import {
   RiCheckLine,
@@ -17,19 +19,14 @@ import {
   RiMapPinLine,
   RiSearchLine,
 } from "@remixicon/react";
-import {
-  MapLayer,
-  type MapLayerMouseEvent,
-  MapLibre,
-  type MapRef,
-  MapSource,
-} from "@workspace/map";
+import { MapLayer, MapLibre, type MapRef, MapSource } from "@workspace/map";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { useTheme } from "next-themes";
-import { useMemo, useRef, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useMemo, useRef, useState } from "react";
 
 type Coordinates = { latitude: number; longitude: number };
+type DeviceKind = "repeater" | "observer";
 
 type PlaceCandidate = {
   id: string;
@@ -37,12 +34,9 @@ type PlaceCandidate = {
   name: string;
   latitude: number;
   longitude: number;
-  address?: Record<string, string | undefined>;
 };
 
-type SearchResponse = {
-  data?: unknown;
-};
+type SearchResponse = { data?: unknown };
 
 const directions = [
   ["", "Nenurodyta"],
@@ -55,6 +49,11 @@ const directions = [
   ["W", "Vakarai (W)"],
   ["NW", "Šiaurės vakarai (NW)"],
 ] as const;
+
+const tabLabels: Record<DeviceKind, string> = {
+  repeater: "Retransliatorius",
+  observer: "Stebėtojas",
+};
 
 const defaultCoordinates: Coordinates = { latitude: 54.6872, longitude: 25.2797 };
 const lithuaniaBounds = [
@@ -90,14 +89,7 @@ function parseCandidates(payload: unknown): PlaceCandidate[] {
     const label = String(result.display_name ?? result.label ?? result.name ?? "");
     const name = nameFromResult(result).trim();
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !label || !name) return [];
-    const address =
-      result.address && typeof result.address === "object"
-        ? Object.fromEntries(
-            Object.entries(result.address as Record<string, unknown>).flatMap(([key, value]) =>
-              typeof value === "string" ? [[key, value]] : [],
-            ),
-          )
-        : undefined;
+
     return [
       {
         id: String(result.id ?? result.place_id ?? index),
@@ -105,7 +97,6 @@ function parseCandidates(payload: unknown): PlaceCandidate[] {
         name,
         latitude,
         longitude,
-        address,
       },
     ];
   });
@@ -144,6 +135,17 @@ function PinSource({ coordinates }: { coordinates: Coordinates }) {
   );
 }
 
+function localityOptionDescription(option: LocalityOption) {
+  const descriptions: Record<LocalityOption["strategy"], string> = {
+    original: "Originali vietovė",
+    "without-descriptor": "Be vietovės tipo",
+    abbreviated: "Sutrumpinti pirmesni žodžiai",
+    shortened: "Sutrumpinta iki leistino ilgio",
+  };
+
+  return descriptions[option.strategy];
+}
+
 export function NamingLocationHelper() {
   const { theme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -157,19 +159,19 @@ export function NamingLocationHelper() {
   const [place, setPlace] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [direction, setDirection] = useState("");
-  const [repeaterName, setRepeaterName] = useState("");
-  const [observerName, setObserverName] = useState("");
+  const [activeKind, setActiveKind] = useState<DeviceKind>("repeater");
   const [searchState, setSearchState] = useState<"idle" | "loading" | "error">("idle");
   const [hasSearched, setHasSearched] = useState(false);
   const [gpsState, setGpsState] = useState<"idle" | "loading" | "error">("idle");
   const [locationError, setLocationError] = useState("");
-  const [copied, setCopied] = useState<"repeater" | "observer" | null>(null);
+  const [copied, setCopied] = useState<DeviceKind | null>(null);
 
   const cleanIdentifier = normalizeIdentifier(identifier);
-  const hasIdentifierError = Boolean(identifier) && !isRepeaterIdentifier(cleanIdentifier);
-  const hasPlaceError = Boolean(selectedCandidate || place) && !place.trim();
+  const effectiveIdentifier = cleanIdentifier || "FFFF";
+  const hasIdentifierError = Boolean(cleanIdentifier) && !isRepeaterIdentifier(cleanIdentifier);
+  const hasPlaceError = Boolean(coordinates) && !place.trim();
   const canGenerate = Boolean(
-    code && coordinates && place.trim() && isRepeaterIdentifier(cleanIdentifier),
+    code && coordinates && place.trim() && isRepeaterIdentifier(effectiveIdentifier),
   );
   const suggestedNames = useMemo(
     () =>
@@ -177,26 +179,41 @@ export function NamingLocationHelper() {
         ? createSuggestedNames({
             code: code as NamingCode,
             place,
-            identifier: cleanIdentifier,
+            identifier: effectiveIdentifier,
             direction: direction as Direction | undefined,
           })
         : null,
-    [canGenerate, cleanIdentifier, code, direction, place],
+    [canGenerate, code, direction, effectiveIdentifier, place],
   );
-  const generatedRepeater = suggestedNames?.repeater ?? "";
-  const generatedObserver = suggestedNames?.observer ?? "";
-  const visibleRepeater = repeaterName || generatedRepeater;
-  const visibleObserver = observerName || generatedObserver;
+  const needsShortening = Boolean(
+    suggestedNames && (!suggestedNames.repeater.fits || !suggestedNames.observer.fits),
+  );
+  const localityOptions = useMemo(
+    () =>
+      needsShortening && code
+        ? suggestLocalityOptions({
+            code,
+            locality: place,
+            identifier: effectiveIdentifier,
+            direction: direction as Direction | undefined,
+          }).filter((option) => option.value !== place.trim())
+        : [],
+    [code, direction, effectiveIdentifier, needsShortening, place],
+  );
+  const activeSuggestion = suggestedNames?.[activeKind];
 
   const setPin = async (nextCoordinates: Coordinates, candidate?: PlaceCandidate) => {
     const revision = ++selectionRevision.current;
     setLocationError("");
+    setCode(null);
+
     if (!candidate) {
       setSelectedCandidate(null);
       setCandidates([]);
       setPlace("");
     }
-    // Show an immediate selection response; validation below removes it if it is outside Lithuania.
+
+    // The pin moves immediately. Errors stay in an overlay so the map never reflows.
     setCoordinates(nextCoordinates);
     mapRef.current?.flyTo({
       center: [nextCoordinates.longitude, nextCoordinates.latitude],
@@ -212,18 +229,15 @@ export function NamingLocationHelper() {
         return;
       }
 
-      const countyCode = await findCountyCode(nextCoordinates);
-      if (revision !== selectionRevision.current) return;
-      if (!countyCode) {
-        setCoordinates(lastValidCoordinates.current);
-        setLocationError("Nepavyko nustatyti vietovės apskrities.");
-        return;
-      }
-
       lastValidCoordinates.current = nextCoordinates;
-      setCode(
-        candidate?.address ? (findCodeFromAddress(candidate.address) ?? countyCode) : countyCode,
-      );
+      if (!cleanIdentifier) setIdentifier("FFFF");
+      const prefix = await findSuggestedPrefix(nextCoordinates);
+      if (revision !== selectionRevision.current) return;
+      if (!prefix) {
+        setLocationError("Šiai vietai nepavyko parinkti vietovės kodo.");
+      } else {
+        setCode(prefix.code);
+      }
 
       if (candidate) {
         setSelectedCandidate(candidate);
@@ -257,7 +271,6 @@ export function NamingLocationHelper() {
       const reverseCandidates = parseCandidates(await response.json());
       if (revision !== selectionRevision.current) return;
       const selected = reverseCandidates[0];
-      if (selected?.address) setCode(findCodeFromAddress(selected.address) ?? countyCode);
       if (!candidate && selected) {
         setSelectedCandidate(selected);
         setPlace(selected.name);
@@ -274,7 +287,7 @@ export function NamingLocationHelper() {
     void setPin({ latitude: candidate.latitude, longitude: candidate.longitude }, candidate);
   };
 
-  const submitSearch = async (event: React.FormEvent<HTMLFormElement>) => {
+  const submitSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = search.trim();
     if (!query) return;
@@ -303,11 +316,10 @@ export function NamingLocationHelper() {
     setGpsState("loading");
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const nextCoordinates = {
+        void setPin({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        };
-        void setPin(nextCoordinates);
+        });
         setGpsState("idle");
       },
       () => setGpsState("error"),
@@ -315,20 +327,33 @@ export function NamingLocationHelper() {
     );
   };
 
-  const copy = async (value: string, target: "repeater" | "observer") => {
-    if (!value) return;
+  const copy = async (kind: DeviceKind) => {
+    const suggestion = suggestedNames?.[kind];
+    if (!suggestion) return;
     try {
-      await navigator.clipboard.writeText(value);
-      setCopied(target);
+      await navigator.clipboard.writeText(suggestion.value);
+      setCopied(kind);
       window.setTimeout(() => setCopied(null), 1800);
     } catch {
-      // The visible, editable field remains a usable fallback when clipboard access is blocked.
+      // Clipboard access can be blocked by the browser; the name remains visible to copy manually.
     }
   };
 
-  const resetOutput = (target: "repeater" | "observer") => {
-    if (target === "repeater") setRepeaterName("");
-    else setObserverName("");
+  const selectTab = (kind: DeviceKind) => setActiveKind(kind);
+
+  const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, kind: DeviceKind) => {
+    if (!(["ArrowLeft", "ArrowRight", "Home", "End"] as string[]).includes(event.key)) return;
+    event.preventDefault();
+    const nextKind: DeviceKind =
+      event.key === "Home"
+        ? "repeater"
+        : event.key === "End"
+          ? "observer"
+          : kind === "repeater"
+            ? "observer"
+            : "repeater";
+    setActiveKind(nextKind);
+    document.getElementById(`naming-${nextKind}-tab`)?.focus();
   };
 
   return (
@@ -346,7 +371,7 @@ export function NamingLocationHelper() {
               Vietovės ir vardo pagalbininkas
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Pažymėkite vietą, pasirinkite vietovę ir gaukite paruoštą įrenginio vardą.
+              Pažymėkite vietą, patikslinkite vietovę ir nukopijuokite paruoštą vardą.
             </p>
           </div>
         </div>
@@ -395,7 +420,6 @@ export function NamingLocationHelper() {
                 className="h-full w-11 rounded-none border-0 border-l border-primary-foreground/20"
               >
                 <RiSearchLine aria-hidden />
-                <span className="sr-only">Ieškoti</span>
               </Button>
             </div>
           </form>
@@ -443,8 +467,8 @@ export function NamingLocationHelper() {
             ) : null}
             {hasSearched && searchState === "idle" && candidates.length === 0 ? (
               <p className="rounded-xl border border-dashed bg-background/95 px-3 py-2.5 text-sm text-muted-foreground shadow-md backdrop-blur-sm">
-                Pagal šią užklausą vietovių nerasta. Pabandykite tikslesnį pavadinimą arba įrašykite
-                jį ranka.
+                Pagal šią užklausą vietovių nerasta. Pabandykite tikslesnį pavadinimą arba
+                pažymėkite vietą žemėlapyje.
               </p>
             ) : null}
           </div>
@@ -499,12 +523,13 @@ export function NamingLocationHelper() {
             }}
             placeholder="Pvz., Žvėrynas"
             aria-invalid={hasPlaceError}
+            aria-describedby="naming-location-place-hint"
             className="mt-2 h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
-          <p className="mt-1.5 text-xs text-muted-foreground">
+          <p id="naming-location-place-hint" className="mt-1.5 text-xs text-muted-foreground">
             {selectedCandidate
-              ? "Parinktas pavadinimas gali būti pataisytas prieš kopijuojant."
-              : "Paieškos rezultatą pasirinkite arba įrašykite vietovę patys."}
+              ? "Vietovė pasiūlyta pagal pasirinktą tašką. Jei reikia, pataisykite ją čia."
+              : "Vietovę parinksime pagal tašką; pavadinimą visada galite įrašyti patys."}
           </p>
         </div>
 
@@ -517,7 +542,7 @@ export function NamingLocationHelper() {
               id="naming-location-id"
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="7F2A"
+              placeholder="FFFF"
               autoCapitalize="characters"
               spellCheck={false}
               aria-invalid={hasIdentifierError}
@@ -531,7 +556,11 @@ export function NamingLocationHelper() {
                 hasIdentifierError ? "text-destructive" : "text-muted-foreground",
               )}
             >
-              {hasIdentifierError ? "Reikia 4 simbolių: 0–9, A–F." : "Public Key pradžia."}
+              {hasIdentifierError
+                ? "Reikia 4 simbolių: 0–9, A–F."
+                : cleanIdentifier
+                  ? "Public Key pradžia."
+                  : "Tuščias laukas naudoja FFFF."}
             </p>
           </div>
           <div>
@@ -556,66 +585,130 @@ export function NamingLocationHelper() {
       </div>
 
       <div className="border-t bg-muted/20 px-5 py-5 sm:px-6">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <RiCompass3Line className="size-4 text-primary" aria-hidden />
-          <h3 className="text-sm font-bold">Paruošti vardai</h3>
-          <span className="text-xs text-muted-foreground">
-            {canGenerate
-              ? `Kodas ${code} nustatytas pagal pažymėtą vietą. Galite koreguoti prieš kopijuodami.`
-              : "Įrašykite vietovę ir 4 simbolių ID."}
-          </span>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <RiCompass3Line className="mt-0.5 size-4 text-primary" aria-hidden />
+            <div>
+              <h3 className="text-sm font-bold">Paruoštas vardas</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {canGenerate
+                  ? `Kodas ${code} parinktas pagal pažymėtą vietą. Vardas atnaujinamas automatiškai.`
+                  : "Pažymėkite vietą ir įrašykite vietovę, kad sugeneruotume vardą."}
+              </p>
+            </div>
+          </div>
+          {suggestedNames ? (
+            <span
+              className={cn(
+                "rounded-md border px-2 py-1 text-xs font-medium tabular-nums",
+                activeSuggestion?.fits
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  : "border-destructive/30 bg-destructive/10 text-destructive",
+              )}
+            >
+              {activeSuggestion?.bytes ?? 0} / 31 baitų
+            </span>
+          ) : null}
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          {(
-            [
-              ["repeater", "Retransliatorius", visibleRepeater, setRepeaterName],
-              ["observer", "Stebėtojas", visibleObserver, setObserverName],
-            ] as const
-          ).map(([key, label, value, setValue]) => (
-            <div key={key} className="rounded-xl border bg-background p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <label
-                  className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                  htmlFor={`naming-${key}-output`}
-                >
-                  {label}
-                </label>
+
+        <div className="mt-4">
+          <div
+            className="inline-flex rounded-lg border bg-background p-1"
+            role="tablist"
+            aria-label="Įrenginio tipas"
+          >
+            {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
+              const selected = activeKind === kind;
+              return (
                 <button
+                  key={kind}
+                  id={`naming-${kind}-tab`}
                   type="button"
-                  onClick={() => resetOutput(key)}
-                  disabled={!value || !(key === "repeater" ? repeaterName : observerName)}
-                  className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:no-underline disabled:opacity-40"
+                  role="tab"
+                  aria-selected={selected}
+                  aria-controls={`naming-${kind}-panel`}
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => selectTab(kind)}
+                  onKeyDown={(event) => onTabKeyDown(event, kind)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                    selected
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
                 >
-                  Atkurti
+                  {tabLabels[kind]}
                 </button>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  id={`naming-${key}-output`}
-                  value={value}
-                  onChange={(event) => setValue(event.target.value)}
-                  placeholder="LT-VM Vietovė 7F2A"
-                  disabled={!canGenerate && !value}
-                  className="h-9 min-w-0 flex-1 rounded-lg border bg-muted/30 px-2.5 font-mono text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60"
-                />
+              );
+            })}
+          </div>
+
+          {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
+            const suggestion = suggestedNames?.[kind];
+            return (
+              <div
+                key={kind}
+                id={`naming-${kind}-panel`}
+                role="tabpanel"
+                aria-labelledby={`naming-${kind}-tab`}
+                hidden={activeKind !== kind}
+                className="mt-3 flex min-h-16 items-center gap-2 rounded-xl border bg-background px-3 py-3"
+              >
+                <output className="min-w-0 flex-1 break-words font-mono text-sm font-medium leading-6">
+                  {suggestion?.value ?? "Vardas bus rodomas čia"}
+                </output>
                 <Button
                   type="button"
-                  size="icon-sm"
+                  size="icon"
                   variant="outline"
-                  disabled={!value}
-                  onClick={() => copy(value, key)}
-                  aria-label={`${label}: kopijuoti vardą`}
+                  disabled={!suggestion?.fits}
+                  onClick={() => copy(kind)}
+                  aria-label={`${tabLabels[kind]}: kopijuoti vardą`}
                 >
-                  {copied === key ? (
+                  {copied === kind ? (
                     <RiCheckLine className="text-emerald-600" aria-hidden />
                   ) : (
                     <RiFileCopyLine aria-hidden />
                   )}
                 </Button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {needsShortening ? (
+          <div className="mt-4 border-t pt-4" aria-live="polite">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <p className="text-sm font-semibold text-destructive">Vardas viršija 31 baitą.</p>
+              <p className="text-xs text-muted-foreground">
+                Sutrumpinus vietovę išlaikomas tas pats vietos ir įrenginio ID ryšys.
+              </p>
+            </div>
+            {localityOptions.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {localityOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setPlace(option.value)}
+                    className="rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <span className="block font-medium text-foreground">{option.value}</span>
+                    <span className="mt-0.5 block text-muted-foreground">
+                      {localityOptionDescription(option)} · R {option.suggestions.repeater.bytes}/31
+                      · S {option.suggestions.observer.bytes}/31 baitų
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Šio pavadinimo automatiškai sutrumpinti nepavyko. Įrašykite trumpesnį vietovės
+                pavadinimą.
+              </p>
+            )}
+          </div>
+        ) : null}
         <p className="sr-only" aria-live="polite">
           {copied ? "Vardas nukopijuotas į iškarpinę." : ""}
         </p>
