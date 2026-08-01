@@ -498,14 +498,6 @@ export function NamingLocationHelper() {
               ? `${coordinates.latitude.toFixed(5)}, ${coordinates.longitude.toFixed(5)}`
               : "Pasirinkite vietą"}
           </output>
-          <a
-            className="pointer-events-auto rounded-md bg-background/95 px-2 py-1 underline underline-offset-2 shadow-sm"
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noreferrer"
-          >
-            © OpenStreetMap contributors
-          </a>
         </div>
       </div>
 
