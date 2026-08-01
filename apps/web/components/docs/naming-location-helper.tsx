@@ -31,6 +31,7 @@ type LocalityLevel =
   | "neighbourhood"
   | "suburb"
   | "city_district"
+  | "locality"
   | "hamlet"
   | "village"
   | "town"
@@ -78,6 +79,7 @@ const localityLevelLabels: Record<LocalityLevel, string> = {
   neighbourhood: "Mikrorajonas",
   suburb: "Priemiestis",
   city_district: "Miesto rajonas",
+  locality: "Vietovė",
   hamlet: "Viensėdis",
   village: "Kaimas",
   town: "Miestas",

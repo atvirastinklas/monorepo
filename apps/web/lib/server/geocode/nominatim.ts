@@ -8,7 +8,15 @@ export type GeocodeResult = {
 
 export type GeocodeLocality = {
   value: string;
-  level: "neighbourhood" | "suburb" | "city_district" | "hamlet" | "village" | "town" | "city";
+  level:
+    | "neighbourhood"
+    | "suburb"
+    | "city_district"
+    | "locality"
+    | "hamlet"
+    | "village"
+    | "town"
+    | "city";
 };
 
 type NominatimResult = {
@@ -31,10 +39,13 @@ const localityLevels = [
   "city",
 ] as const satisfies GeocodeLocality["level"][];
 
-function localitiesFromAddress(address: Record<string, string | undefined>): GeocodeLocality[] {
+function localitiesFromAddress(
+  address: Record<string, string | undefined>,
+  displayName: string,
+  resultName: string | undefined,
+): GeocodeLocality[] {
   const seen = new Set<string>();
-
-  return localityLevels.flatMap((level) => {
+  const localities: GeocodeLocality[] = localityLevels.flatMap((level) => {
     const value = address[level]?.trim().replace(/\s+/g, " ").normalize("NFC");
     if (!value) return [];
 
@@ -43,6 +54,31 @@ function localitiesFromAddress(address: Record<string, string | undefined>): Geo
     seen.add(key);
     return [{ value, level }];
   });
+
+  const addressValues = new Set(
+    Object.values(address)
+      .filter((value): value is string => Boolean(value?.trim()))
+      .map((value) => value.trim().toLocaleLowerCase("lt-LT")),
+  );
+  const normalizedResultName = resultName?.trim().toLocaleLowerCase("lt-LT");
+
+  for (const part of displayName.split(",").map((value) => value.trim().normalize("NFC"))) {
+    const key = part.toLocaleLowerCase("lt-LT");
+    if (
+      !part ||
+      key === normalizedResultName ||
+      seen.has(key) ||
+      addressValues.has(key) ||
+      /\b(?:seniūnija|savivaldybė|apskritis|lietuva)\b/iu.test(part)
+    ) {
+      continue;
+    }
+
+    seen.add(key);
+    localities.push({ value: part, level: "locality" });
+  }
+
+  return localities;
 }
 
 function toResult(result: NominatimResult): GeocodeResult | null {
@@ -65,7 +101,7 @@ function toResult(result: NominatimResult): GeocodeResult | null {
     label,
     latitude,
     longitude,
-    localities: localitiesFromAddress(address),
+    localities: localitiesFromAddress(address, label, result.name),
   };
 }
 
@@ -89,10 +125,7 @@ export function createReverseUrl(latitude: number, longitude: number) {
     lon: String(longitude),
     format: "jsonv2",
     addressdetails: "1",
-    // At street level Nominatim may assign a nearby settlement (Daukšiai) instead of the
-    // settlement containing the point (Tubiai). Locality-level reverse geocoding returns
-    // the named village/town/suburb users need for the MeshCore location component.
-    zoom: "14",
+    zoom: "16",
     "accept-language": "lt",
   }).toString();
   return url.toString();
