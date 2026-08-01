@@ -231,6 +231,7 @@ export function NamingLocationHelper() {
     [code, direction, effectiveIdentifier, needsShortening, place],
   );
   const activeSuggestion = suggestedNames?.[activeKind];
+  const activeNeedsShortening = Boolean(activeSuggestion && !activeSuggestion.fits);
 
   const setPin = async (nextCoordinates: Coordinates) => {
     const revision = ++selectionRevision.current;
@@ -672,13 +673,15 @@ export function NamingLocationHelper() {
           {suggestedNames ? (
             <span
               className={cn(
-                "rounded-md border px-2 py-1 text-xs font-medium tabular-nums",
+                "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium tabular-nums",
                 activeSuggestion?.fits
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                   : "border-destructive/30 bg-destructive/10 text-destructive",
               )}
             >
-              {activeSuggestion?.bytes ?? 0} / 31 baitų
+              <span>{activeSuggestion?.bytes ?? 0} / 31 baitų</span>
+              <span aria-hidden="true">·</span>
+              <span>{activeSuggestion?.fits ? "telpa" : "viršija"}</span>
             </span>
           ) : null}
         </div>
@@ -748,12 +751,14 @@ export function NamingLocationHelper() {
           })}
         </div>
 
-        {needsShortening ? (
+        {activeNeedsShortening ? (
           <div className="mt-4 border-t pt-4" aria-live="polite">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <p className="text-sm font-semibold text-destructive">Vardas viršija 31 baitą.</p>
+              <p className="text-sm font-semibold text-destructive">
+                {tabLabels[activeKind]} vardas viršija 31 baitą.
+              </p>
               <p className="text-xs text-muted-foreground">
-                Sutrumpinus vietovę išlaikomas tas pats vietos ir įrenginio ID ryšys.
+                Pasirinkite trumpesnę vietovę; vardas pakeičiamas tik pasirinkus variantą.
               </p>
             </div>
             {shorteningOptions.length > 0 ? (
@@ -766,12 +771,13 @@ export function NamingLocationHelper() {
                       setPlace(option.value);
                       setSelectedLocality(null);
                     }}
+                    aria-label={`Pasirinkti vietovę „${option.value}“ ${tabLabels[activeKind]} vardui`}
                     className="rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <span className="block font-medium text-foreground">{option.value}</span>
                     <span className="mt-0.5 block text-muted-foreground">
-                      {localityOptionDescription(option)} · R {option.suggestions.repeater.bytes}/31
-                      · S {option.suggestions.observer.bytes}/31 baitų
+                      {localityOptionDescription(option)} · {tabLabels[activeKind]}{" "}
+                      {option.suggestions[activeKind].bytes}/31 baitų · telpa
                     </span>
                   </button>
                 ))}
