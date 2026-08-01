@@ -21,6 +21,20 @@
       "database_id": "c2fa0c03-b684-406c-b04b-0889bc3a1677"
     }
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "GEOCODE_COORDINATOR",
+        "class_name": "GeocodeCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["GeocodeCoordinator"]
+    }
+  ],
   "triggers": {
     "crons": ["*/30 * * * *"]
   }

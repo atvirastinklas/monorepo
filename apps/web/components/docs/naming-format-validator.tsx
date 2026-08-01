@@ -43,19 +43,18 @@ const validCodes = Object.keys(codeLabels) as Array<keyof typeof codeLabels>;
 const validDirections = Object.keys(directionLabels) as Array<keyof typeof directionLabels>;
 
 const exampleNames = [
-  "LT-VM Žvėrynas 6D SE",
-  "LT-KM Šilainiai II 12",
-  "LT-VM Šiaurės m. 56 S",
+  "LT-VM Žvėrynas 6D00 SE",
+  "LT-KM Šilainiai II 1200",
+  "LT-VM Šiaurės m. 5600 S",
 ] as const;
 
 const namingFormat = "LT-{Kodas} {Vietovė} {ID} [Kryptis]";
 const placeTokenPattern = "[0-9A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]+\\.?";
 const placePattern = new RegExp(`^${placeTokenPattern}(?:\\s+${placeTokenPattern})*$`, "u");
-const idPattern = /^(?:[0-9A-F]{2}){1,3}$/;
+const idPattern = /^[0-9A-F]{4}$/;
 
 const validCodeDetails = validCodes.map((code) => `${code}: ${codeLabels[code]}`).join(", ");
-const validDirectionDetails = validDirections
-  .join(", ");
+const validDirectionDetails = validDirections.join(", ");
 
 type ValidationState = "idle" | "valid" | "invalid";
 type PartKey = "country" | "code" | "place" | "id" | "direction";
@@ -87,14 +86,18 @@ function validateRepeaterName(input: string): ValidationResult {
   const restMatches = tokenMatches.slice(1);
   const lastRestMatch = restMatches.at(-1);
   const directionCandidate = lastRestMatch?.[0].toUpperCase() ?? "";
-  const hasDirection = validDirections.includes(directionCandidate as (typeof validDirections)[number]);
+  const hasDirection = validDirections.includes(
+    directionCandidate as (typeof validDirections)[number],
+  );
   const idMatch = restMatches.at(hasDirection ? -2 : -1);
   const placeStart = restMatches[0]?.index;
   const placeEnd = idMatch?.index;
   const placeRaw =
-    placeStart !== undefined && placeEnd !== undefined ? value.slice(placeStart, placeEnd).trim() : "";
+    placeStart !== undefined && placeEnd !== undefined
+      ? value.slice(placeStart, placeEnd).trim()
+      : "";
   const idRaw = idMatch?.[0] ?? "";
-  const directionRaw = hasDirection ? lastRestMatch?.[0] ?? "" : "";
+  const directionRaw = hasDirection ? (lastRestMatch?.[0] ?? "") : "";
   const country = countryRaw.toUpperCase();
   const code = codeRaw.toUpperCase();
   const id = idRaw.toUpperCase();
@@ -120,14 +123,15 @@ function validateRepeaterName(input: string): ValidationResult {
       value: placeRaw,
       state: "idle",
       description: "Mikrorajonas arba vietovė.",
-      details: "Naudokite lietuviškas raides, skaičius ir tarpus. Sutrumpinimams galima naudoti tašką.",
+      details:
+        "Naudokite lietuviškas raides, skaičius ir tarpus. Sutrumpinimams galima naudoti tašką.",
     },
     id: {
       label: "ID",
       value: id,
       state: "idle",
       description: "Public Key pradžia.",
-      details: "Naudokite 2, 4 arba 6 šešioliktainius simbolius: 0-9 ir A-F.",
+      details: "Naudokite 4 šešioliktainius simbolius: 0-9 ir A-F.",
     },
     direction: {
       label: "Kryptis",
@@ -151,7 +155,8 @@ function validateRepeaterName(input: string): ValidationResult {
     return {
       formatMessage: (
         <>
-          Įveskite vardą formatu <code className="font-mono bg-muted/70 px-1.5 py-0.5 rounded-md">{namingFormat}</code>.
+          Įveskite vardą formatu{" "}
+          <code className="font-mono bg-muted/70 px-1.5 py-0.5 rounded-md">{namingFormat}</code>.
         </>
       ),
       isValid: false,
@@ -165,9 +170,7 @@ function validateRepeaterName(input: string): ValidationResult {
     parts.country = {
       ...parts.country,
       state: "invalid",
-      description: countryAndCodeRaw
-        ? "Naudokite formatą LT-VM."
-        : "Trūksta LT- prefikso.",
+      description: countryAndCodeRaw ? "Naudokite formatą LT-VM." : "Trūksta LT- prefikso.",
     };
   } else if (country !== "LT") {
     parts.country = {
@@ -188,9 +191,7 @@ function validateRepeaterName(input: string): ValidationResult {
     parts.code = {
       ...parts.code,
       state: "invalid",
-      description: countryAndCodeRaw
-        ? "Naudokite kodą po prefikso, pvz. LT-VM."
-        : "Trūksta kodo.",
+      description: countryAndCodeRaw ? "Naudokite kodą po prefikso, pvz. LT-VM." : "Trūksta kodo.",
     };
   } else if (!validCodes.includes(code as (typeof validCodes)[number])) {
     parts.code = {
@@ -256,7 +257,7 @@ function validateRepeaterName(input: string): ValidationResult {
     parts.id = {
       ...parts.id,
       state: "valid",
-      description: `${id.length} šešioliktainiai simboliai.`,
+      description: "4 šešioliktainiai simboliai.",
       details: undefined,
     };
   }
@@ -396,7 +397,7 @@ export function NamingFormatValidator() {
           type="text"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="LT-VM Šiaurės m. 56 S"
+          placeholder="LT-VM Šiaurės m. 5600 S"
           autoCapitalize="characters"
           spellCheck={false}
           aria-describedby="naming-format-validator-hint naming-format-validator-feedback"

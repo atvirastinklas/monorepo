@@ -19,14 +19,15 @@ description: Kaip teisingai vardinti retransliatorių Lietuvoje
 Retransliatoriaus vardą rekomenduojama formuoti pagal šią struktūrą:
 
 ```
-LT-{Kodas} {Mikrorajonas|Vietovė} {ID} [Kryptis]
+Retransliatorius: LT-{Kodas} {Mikrorajonas|Vietovė} {ID-4} [Kryptis]
+Stebėtojas: LT-{Kodas} {Mikrorajonas|Vietovė} {ID-2} OBS
 ```
 
 - `LT-` - Lietuvos [dviraidis ISO 3166-1 kodas](https://lt.wikipedia.org/wiki/ISO_3166-1)
 - `Kodas` - miesto kodas (apskrities centro miesto ribose) arba apskrities kodas (už miesto ribų)
 - `Mikrorajonas` -  miesto mikrorajonas, miesto gyvenvietė, miesto žymi vieta
 - `Vietovė` - apskrities miestas (išskyrus apsk. centrą), miestelis, gyvenvietė, kaimas, žymi vieta; gali būti iš kelių žodžių
-- `ID` -  retransliatoriaus viešojo rakto (angl. Public Key) pirmieji 2 simboliai
+- `ID` - retransliatoriaus keturių simbolių identifikatorius. Stebėtojo varde naudojami pirmieji du šio ID simboliai ir sufiksas `OBS`.
 - `Kryptis` (neprivaloma) - retransliatoriaus spinduliavimo kryptis: N,NE,E,SE,S,SW,W,NW
 
 | Apskritis              | Apskrities kodas | Miesto kodas (apskrities centras) | [IATA regionas](../regionai) |
@@ -49,37 +50,45 @@ LT-{Kodas} {Mikrorajonas|Vietovė} {ID} [Kryptis]
     
     Vilniaus miesto ribose:
 
-    - LT-VM Žvėrynas 6D SE
-    - LT-VM Antakalnis 5D W
-    - LT-VM Tarandė F5
-    - LT-VM Šiaurės m. 56 S
+    - LT-VM Žvėrynas 6D00 SE
+    - LT-VM Antakalnis 5D00 W
+    - LT-VM Tarandė F500
+    - LT-VM Šiaurės m. 5600 S
 
     Kauno miesto ribose:
 
-    - LT-KM Romainiai C5
-    - LT-KM Šilainiai II 12
-    - LT-KM Žaliakalnis 44
+    - LT-KM Romainiai C500
+    - LT-KM Šilainiai II 1200
+    - LT-KM Žaliakalnis 4400
 
     Panevėžio miesto ribose:
 
-    - LT-PM Pilėnai D6
-    - LT-PM Senvagė B2
+    - LT-PM Pilėnai D600
+    - LT-PM Senvagė B200
   </div>
   <div>
     ### Apskrityse už miesto ribų
     
-    - LT-VA Avižieniai 84
-    - LT-VA Stripūnai 23
-    - LT-VA Trakai E4
-    - LT-KA Domeikava 59
-    - LT-KA Garliava C1
-    - LT-AA Lazdijai 3F
-    - LT-LA Palanga 4A
-    - LT-LA Kintai 09
-    - LT-SA Radviliškis 03
-    - LT-PA Biržai B3
+    - LT-VA Avižieniai 8400
+    - LT-VA Stripūnai 2300
+    - LT-VA Trakai E400
+    - LT-KA Domeikava 5900
+    - LT-KA Garliava C100
+    - LT-AA Lazdijai 3F00
+    - LT-LA Palanga 4A00
+    - LT-LA Kintai 0900
+    - LT-SA Radviliškis 0300
+    - LT-PA Biržai B300
   </div>
 </div>
+
+## Vietos parinkimo pagalbininkas
+
+Pasirinkite retransliatoriaus vietą žemėlapyje, naudokite savo įrenginio vietą arba ieškokite vietovės. Galite pasirinkti pasiūlytą vietovės pavadinimą ir jį pataisyti prieš kopijuodami vardą. Žemėlapyje priimamos tik Lietuvos teritorijoje esančios vietos.
+
+<NamingLocationHelper />
+
+Vietovių paieškai naudojami © [OpenStreetMap](https://www.openstreetmap.org/copyright) bendradarbių duomenys ir Nominatim paslauga. Paieškos frazė arba pasirinkta koordinatė išsiunčiama tik tada, kai patys atliekate paiešką arba pasirenkate vietą.
 
 ## Tikrintuvas
 

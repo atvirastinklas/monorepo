@@ -18,6 +18,7 @@ import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import { NamingRegionMap } from "../maps/naming-region-map";
 import { NamingFormatValidator } from "./naming-format-validator";
+import { NamingLocationHelper } from "./naming-location-helper";
 
 type WikiPage = NonNullable<ReturnType<typeof source.getPage>>;
 
@@ -58,6 +59,7 @@ export async function AppDocsPage({ page }: AppDocsPageProps) {
             ...TabsComponents,
             ...CarouselComponents,
             NamingFormatValidator: NamingFormatValidator,
+            NamingLocationHelper: NamingLocationHelper,
             NamingRegionMap: NamingRegionMap,
             MeshcoreRepeatersList: MeshcoreRepeatersList,
           })}
