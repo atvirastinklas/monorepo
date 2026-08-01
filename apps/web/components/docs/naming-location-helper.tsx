@@ -77,7 +77,7 @@ function mapStyle(theme: string | undefined) {
 
 const localityLevelLabels: Record<LocalityLevel, string> = {
   neighbourhood: "Mikrorajonas",
-  suburb: "Priemiestis",
+  suburb: "Miesto dalis",
   city_district: "Miesto rajonas",
   locality: "Vietovė",
   hamlet: "Viensėdis",
