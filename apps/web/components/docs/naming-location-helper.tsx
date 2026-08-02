@@ -167,6 +167,8 @@ function localityOptionDescription(option: LocalityOption) {
     original: "Originali vietovė",
     "without-descriptor": "Be vietovės tipo",
     abbreviated: "Sutrumpinti pirmesni žodžiai",
+    transliterated: "Be lietuviškų diakritinių ženklų",
+    "transliterated-abbreviated": "Be diakritinių ženklų, sutrumpinti žodžiai",
     shortened: "Sutrumpinta iki leistino ilgio",
   };
 
@@ -785,8 +787,8 @@ export function NamingLocationHelper() {
                       <span className="block font-medium text-foreground">{option.value}</span>
                       <span className="mt-0.5 block text-muted-foreground">
                         {localityOptionDescription(option)} · {tabLabels[activeKind]}{" "}
-                        {option.suggestions[activeKind].bytes}/{maxLocatedNodeNameBytes} baitų
-                        · telpa
+                        {option.suggestions[activeKind].bytes}/{maxLocatedNodeNameBytes} baitų ·
+                        telpa
                       </span>
                     </button>
                   ))}

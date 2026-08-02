@@ -13,7 +13,13 @@ export type NameSuggestion = {
 
 export type LocalityOption = {
   value: string;
-  strategy: "original" | "without-descriptor" | "abbreviated" | "shortened";
+  strategy:
+    | "original"
+    | "without-descriptor"
+    | "abbreviated"
+    | "transliterated"
+    | "transliterated-abbreviated"
+    | "shortened";
   suggestions: Record<DeviceKind, NameSuggestion>;
 };
 
@@ -60,6 +66,31 @@ function abbreviateWord(word: string) {
   return firstCharacter ? `${firstCharacter}.` : word;
 }
 
+function transliterateLithuanian(value: string) {
+  const replacements: Record<string, string> = {
+    Ą: "A",
+    ą: "a",
+    Č: "C",
+    č: "c",
+    Ę: "E",
+    ę: "e",
+    Ė: "E",
+    ė: "e",
+    Į: "I",
+    į: "i",
+    Š: "S",
+    š: "s",
+    Ų: "U",
+    ų: "u",
+    Ū: "U",
+    ū: "u",
+    Ž: "Z",
+    ž: "z",
+  };
+
+  return Array.from(value, (character) => replacements[character] ?? character).join("");
+}
+
 function shortenWord(word: string) {
   const characters = Array.from(word);
   if (characters.length <= 4) return abbreviateWord(word);
@@ -75,32 +106,43 @@ function truncateToBytes(value: string, budget: number) {
   return result && result !== value ? `${result}.` : result;
 }
 
-function localityAlternatives(value: string) {
+function localityAlternatives(
+  value: string,
+  transliterated = false,
+): Array<[string, LocalityOption["strategy"]]> {
   const normalized = value.trim().replace(/\s+/g, " ").normalize("NFC");
-  const alternatives: Array<[string, LocalityOption["strategy"]]> = [[normalized, "original"]];
+  const alternatives: Array<[string, LocalityOption["strategy"]]> = [
+    [normalized, transliterated ? "transliterated" : "original"],
+  ];
   const withoutDescriptor = normalized.replace(
     /\s+(?:miestas|miestelis|kaimas|gyvenvietė|seniūnija)$/iu,
     "",
   );
   if (withoutDescriptor !== normalized)
-    alternatives.push([withoutDescriptor, "without-descriptor"]);
+    alternatives.push([
+      withoutDescriptor,
+      transliterated ? "transliterated" : "without-descriptor",
+    ]);
 
   const words = withoutDescriptor.split(" ");
   for (let count = 1; count < words.length; count += 1) {
     alternatives.push([
       [...words.slice(0, count).map(abbreviateWord), ...words.slice(count)].join(" "),
-      "abbreviated",
+      transliterated ? "transliterated-abbreviated" : "abbreviated",
     ]);
   }
 
   if (words.length > 1) {
     alternatives.push([
       [...words.slice(0, -1).map(abbreviateWord), shortenWord(words.at(-1) ?? "")].join(" "),
-      "abbreviated",
+      transliterated ? "transliterated-abbreviated" : "abbreviated",
     ]);
   }
 
-  return alternatives;
+  const ascii = transliterateLithuanian(normalized);
+  return ascii === normalized
+    ? alternatives
+    : [...alternatives, ...localityAlternatives(ascii, true)];
 }
 
 export function suggestLocalityOptions({
@@ -133,8 +175,9 @@ export function suggestLocalityOptions({
     utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier)}${direction ? ` ${direction}` : ""}`),
     utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier)} OBS`),
   );
+  const normalizedLocality = locality.trim().normalize("NFC");
   const shortened = truncateToBytes(
-    locality.trim().normalize("NFC"),
+    transliterateLithuanian(normalizedLocality),
     maxLocatedNodeNameBytes - fixedBytes,
   );
   if (!shortened) return [];
