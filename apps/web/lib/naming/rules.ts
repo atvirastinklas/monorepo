@@ -1,4 +1,5 @@
 export const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
+export const maxLocatedNodeNameBytes = 24;
 
 export type NamingCode = string;
 export type Direction = (typeof directions)[number];
@@ -21,7 +22,7 @@ export function normalizeIdentifier(value: string) {
 }
 
 export function isRepeaterIdentifier(value: string) {
-  return /^[0-9A-F]{4}$/.test(value);
+  return /^[0-9A-F]{2}$/.test(value);
 }
 
 export function utf8Bytes(value: string) {
@@ -30,7 +31,7 @@ export function utf8Bytes(value: string) {
 
 function nameSuggestion(value: string): NameSuggestion {
   const bytes = utf8Bytes(value);
-  return { value, bytes, fits: bytes <= 31 };
+  return { value, bytes, fits: bytes <= maxLocatedNodeNameBytes };
 }
 
 export function createSuggestedNames({
@@ -49,7 +50,7 @@ export function createSuggestedNames({
   const repeater = [`LT-${code}`, normalizedPlace, normalizedIdentifier, direction]
     .filter(Boolean)
     .join(" ");
-  const observer = `LT-${code} ${normalizedPlace} ${normalizedIdentifier.slice(0, 2)} OBS`;
+  const observer = `LT-${code} ${normalizedPlace} ${normalizedIdentifier} OBS`;
 
   return { repeater: nameSuggestion(repeater), observer: nameSuggestion(observer) };
 }
@@ -117,9 +118,12 @@ export function suggestLocalityOptions({
 
   const fixedBytes = Math.max(
     utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier)}${direction ? ` ${direction}` : ""}`),
-    utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier).slice(0, 2)} OBS`),
+    utf8Bytes(`LT-${code}  ${normalizeIdentifier(identifier)} OBS`),
   );
-  const shortened = truncateToBytes(locality.trim().normalize("NFC"), 31 - fixedBytes);
+  const shortened = truncateToBytes(
+    locality.trim().normalize("NFC"),
+    maxLocatedNodeNameBytes - fixedBytes,
+  );
   if (!shortened) return [];
 
   const suggestions = createSuggestedNames({ code, place: shortened, identifier, direction });

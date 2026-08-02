@@ -43,15 +43,16 @@ const validCodes = Object.keys(codeLabels) as Array<keyof typeof codeLabels>;
 const validDirections = Object.keys(directionLabels) as Array<keyof typeof directionLabels>;
 
 const exampleNames = [
-  "LT-VM Žvėrynas 6D00 SE",
-  "LT-KM Šilainiai II 1200",
-  "LT-VM Šiaurės m. 5600 S",
+  "LT-VM Žvėrynas 6D SE",
+  "LT-KM Šilainiai II 12",
+  "LT-VM Šiaurės m. 56 S",
 ] as const;
 
 const namingFormat = "LT-{Kodas} {Vietovė} {ID} [Kryptis]";
 const placeTokenPattern = "[0-9A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]+\\.?";
 const placePattern = new RegExp(`^${placeTokenPattern}(?:\\s+${placeTokenPattern})*$`, "u");
-const idPattern = /^[0-9A-F]{4}$/;
+const idPattern = /^[0-9A-F]{2}$/;
+const maxLocatedNodeNameBytes = 24;
 
 const validCodeDetails = validCodes.map((code) => `${code}: ${codeLabels[code]}`).join(", ");
 const validDirectionDetails = validDirections.join(", ");
@@ -85,11 +86,12 @@ function validateRepeaterName(input: string): ValidationResult {
   const codeRaw = countryAndCodeMatch?.[2] ?? "";
   const restMatches = tokenMatches.slice(1);
   const lastRestMatch = restMatches.at(-1);
+  const isObserver = lastRestMatch?.[0].toUpperCase() === "OBS";
   const directionCandidate = lastRestMatch?.[0].toUpperCase() ?? "";
   const hasDirection = validDirections.includes(
     directionCandidate as (typeof validDirections)[number],
   );
-  const idMatch = restMatches.at(hasDirection ? -2 : -1);
+  const idMatch = restMatches.at(hasDirection || isObserver ? -2 : -1);
   const placeStart = restMatches[0]?.index;
   const placeEnd = idMatch?.index;
   const placeRaw =
@@ -131,7 +133,7 @@ function validateRepeaterName(input: string): ValidationResult {
       value: id,
       state: "idle",
       description: "Public Key pradžia.",
-      details: "Naudokite 4 šešioliktainius simbolius: 0-9 ir A-F.",
+      details: "Naudokite 2 šešioliktainius simbolius: 0-9 ir A-F.",
     },
     direction: {
       label: "Kryptis",
@@ -147,7 +149,7 @@ function validateRepeaterName(input: string): ValidationResult {
     firstTokenHyphenCount > 1 || restMatches.some((tokenMatch) => tokenMatch[0].includes("-"));
   const canShowNormalizedValue = Boolean(countryRaw && codeRaw && placeRaw && idRaw);
   const normalizedValue = canShowNormalizedValue
-    ? [`${country}-${code}`, placeRaw, id, direction].filter(Boolean).join(" ")
+    ? [`${country}-${code}`, placeRaw, id, isObserver ? "OBS" : direction].filter(Boolean).join(" ")
     : "";
   const hasNormalizationChange = Boolean(normalizedValue) && normalizedValue !== value;
 
@@ -257,7 +259,7 @@ function validateRepeaterName(input: string): ValidationResult {
     parts.id = {
       ...parts.id,
       state: "valid",
-      description: "4 šešioliktainiai simboliai.",
+      description: "2 šešioliktainiai simboliai.",
       details: undefined,
     };
   }
@@ -283,12 +285,15 @@ function validateRepeaterName(input: string): ValidationResult {
     };
   }
 
+  const hasValidByteLength =
+    new TextEncoder().encode(normalizedValue || value).byteLength <= maxLocatedNodeNameBytes;
   const isValid =
     parts.country.state === "valid" &&
     parts.code.state === "valid" &&
     parts.place.state === "valid" &&
     parts.id.state === "valid" &&
-    parts.direction.state !== "invalid";
+    parts.direction.state !== "invalid" &&
+    hasValidByteLength;
 
   let formatMessage = "Pataisykite pažymėtas dalis.";
   let formatDetails: string | undefined;
@@ -298,6 +303,9 @@ function validateRepeaterName(input: string): ValidationResult {
     formatDetails = "Formatas: LT-VM Šiaurės m. 56 S.";
   } else if (restMatches.length < 2) {
     formatMessage = "Trūksta vienos ar kelių privalomų dalių.";
+  } else if (!hasValidByteLength) {
+    formatMessage = "Vardas per ilgas vietovę naudojančiam įrenginiui.";
+    formatDetails = `Naudokite ne daugiau kaip ${maxLocatedNodeNameBytes} UTF-8 baitus.`;
   } else if (isValid) {
     formatMessage = hasNormalizationChange
       ? "Vardas atitinka sistemos formatą po normalizavimo."
@@ -397,7 +405,7 @@ export function NamingFormatValidator() {
           type="text"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="LT-VM Šiaurės m. 5600 S"
+          placeholder="LT-VM Šiaurės m. 56 S"
           autoCapitalize="characters"
           spellCheck={false}
           aria-describedby="naming-format-validator-hint naming-format-validator-feedback"

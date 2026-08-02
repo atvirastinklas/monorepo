@@ -7,6 +7,7 @@ import {
   type NamingCode,
   createSuggestedNames,
   isRepeaterIdentifier,
+  maxLocatedNodeNameBytes,
   normalizeIdentifier,
   suggestLocalityOptions,
 } from "@/lib/naming/rules";
@@ -197,7 +198,7 @@ export function NamingLocationHelper() {
   const [copied, setCopied] = useState<DeviceKind | null>(null);
 
   const cleanIdentifier = normalizeIdentifier(identifier);
-  const effectiveIdentifier = cleanIdentifier || "FFFF";
+  const effectiveIdentifier = cleanIdentifier || "FF";
   const hasIdentifierError = Boolean(cleanIdentifier) && !isRepeaterIdentifier(cleanIdentifier);
   const hasPlaceError = Boolean(coordinates) && !place.trim();
   const canGenerate = Boolean(
@@ -262,7 +263,7 @@ export function NamingLocationHelper() {
       }
 
       lastValidCoordinates.current = nextCoordinates;
-      if (!cleanIdentifier) setIdentifier("FFFF");
+      if (!cleanIdentifier) setIdentifier("FF");
       const prefix = await findSuggestedPrefix(nextCoordinates);
       if (revision !== selectionRevision.current) return;
       if (!prefix) {
@@ -525,11 +526,11 @@ export function NamingLocationHelper() {
         </div>
       </div>
 
-      <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] sm:p-6">
-        <div className="min-w-0">
+      <div className="p-5 sm:p-6">
+        <div className="max-w-4xl">
           <fieldset aria-describedby="naming-locality-guidance">
-            <legend className="text-sm font-bold">Vietovė</legend>
-            <p id="naming-locality-guidance" className="mt-1.5 text-xs text-muted-foreground">
+            <legend className="text-sm font-bold tracking-tight">Vietovė</legend>
+            <p id="naming-locality-guidance" className="mt-1 text-sm text-muted-foreground">
               Pasirinkite vieną vietovės lygį pagal pažymėtą tašką arba įrašykite pavadinimą ranka.
             </p>
 
@@ -540,7 +541,7 @@ export function NamingLocationHelper() {
             ) : null}
 
             {localityState === "success" && localities.length > 0 ? (
-              <div className="mt-3 divide-y border-y">
+              <div className="mt-3 max-w-2xl divide-y border-y">
                 {localities.map((locality, index) => {
                   const id = `naming-locality-${index}`;
                   return (
@@ -584,215 +585,224 @@ export function NamingLocationHelper() {
             ) : null}
           </fieldset>
 
-          <div className="mt-4 border-t pt-4">
-            <label className="text-sm font-semibold" htmlFor="naming-location-place">
-              Vietovės pavadinimas ranka
-            </label>
-            <input
-              id="naming-location-place"
-              value={place}
-              onChange={(event) => {
-                setPlace(event.target.value);
-                setSelectedLocality(null);
-              }}
-              placeholder="Pvz., Žvėrynas"
-              aria-invalid={hasPlaceError}
-              aria-describedby="naming-location-place-hint"
-              className="mt-2 h-9 w-full border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-            <p id="naming-location-place-hint" className="mt-1.5 text-xs text-muted-foreground">
-              Pasirinkus lygį jo pavadinimas perkeliamas čia; šį lauką galite bet kada pakeisti.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-3">
-          <div>
-            <label className="text-sm font-bold" htmlFor="naming-location-id">
-              4 simbolių ID
-            </label>
-            <input
-              id="naming-location-id"
-              value={identifier}
-              onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="FFFF"
-              autoCapitalize="characters"
-              spellCheck={false}
-              aria-invalid={hasIdentifierError}
-              aria-describedby="naming-location-id-hint"
-              className="mt-2 h-9 w-full rounded-lg border bg-background px-3 font-mono text-sm uppercase outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-            <p
-              id="naming-location-id-hint"
-              className={cn(
-                "mt-1.5 text-xs",
-                hasIdentifierError ? "text-destructive" : "text-muted-foreground",
-              )}
-            >
-              {hasIdentifierError
-                ? "Reikia 4 simbolių: 0-9, A-F."
-                : cleanIdentifier
-                  ? "Public Key pradžia."
-                  : "Tuščias laukas naudoja FFFF."}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-bold" htmlFor="naming-location-direction">
-              Kryptis
-            </label>
-            <select
-              id="naming-location-direction"
-              value={direction}
-              onChange={(event) => setDirection(event.target.value)}
-              className="mt-2 h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              {directions.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1.5 text-xs text-muted-foreground">Retransliatoriui neprivaloma.</p>
+          <div className="mt-5 grid gap-4 border-t pt-5 md:grid-cols-[minmax(0,1fr)_8rem_minmax(12rem,0.48fr)] md:items-start">
+            <div>
+              <label className="text-sm font-semibold" htmlFor="naming-location-place">
+                Vietovės pavadinimas
+              </label>
+              <input
+                id="naming-location-place"
+                value={place}
+                onChange={(event) => {
+                  setPlace(event.target.value);
+                  setSelectedLocality(null);
+                }}
+                placeholder="Pvz., Žvėrynas"
+                aria-invalid={hasPlaceError}
+                aria-describedby="naming-location-place-hint"
+                className="mt-2 h-10 w-full border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+              <p id="naming-location-place-hint" className="mt-1.5 text-xs text-muted-foreground">
+                Pasirinkus lygį jo pavadinimas perkeliamas čia; šį lauką galite bet kada pakeisti.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold" htmlFor="naming-location-id">
+                ID <span className="font-normal text-muted-foreground">(2 hex)</span>
+              </label>
+              <input
+                id="naming-location-id"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
+                placeholder="FF"
+                maxLength={2}
+                autoCapitalize="characters"
+                spellCheck={false}
+                aria-invalid={hasIdentifierError}
+                aria-describedby="naming-location-id-hint"
+                className="mt-2 h-10 w-full border bg-background px-3 font-mono text-sm uppercase outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+              <p
+                id="naming-location-id-hint"
+                className={cn(
+                  "mt-1.5 text-xs",
+                  hasIdentifierError ? "text-destructive" : "text-muted-foreground",
+                )}
+              >
+                {hasIdentifierError
+                  ? "Naudokite 0–9 arba A–F."
+                  : cleanIdentifier
+                    ? "Bendras abiem vardams."
+                    : "Nustačius vietą: FF."}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold" htmlFor="naming-location-direction">
+                Kryptis <span className="font-normal text-muted-foreground">(nebūtina)</span>
+              </label>
+              <select
+                id="naming-location-direction"
+                value={direction}
+                onChange={(event) => setDirection(event.target.value)}
+                className="mt-2 h-10 w-full border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {directions.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Pridedama tik retransliatoriui.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="border-t bg-muted/20 px-5 py-5 sm:px-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <RiCompass3Line className="mt-0.5 size-4 text-primary" aria-hidden />
-            <div>
-              <h3 className="text-sm font-bold">Paruoštas vardas</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {canGenerate
-                  ? `Kodas ${code} parinktas pagal pažymėtą vietą. Vardas atnaujinamas automatiškai.`
-                  : "Pažymėkite vietą ir įrašykite vietovę, kad sugeneruotume vardą."}
-              </p>
+      <div className="border-t bg-muted/30 px-5 py-5 sm:px-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-start gap-2">
+              <RiCompass3Line className="mt-0.5 size-4 text-primary" aria-hidden />
+              <div>
+                <h3 className="text-sm font-bold tracking-tight">Paruoštas vardas</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {canGenerate
+                    ? `Kodas ${code} parinktas pagal pažymėtą vietą. Vardas atnaujinamas automatiškai.`
+                    : "Pažymėkite vietą ir įrašykite vietovę, kad sugeneruotume vardą."}
+                </p>
+              </div>
             </div>
-          </div>
-          {suggestedNames ? (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium tabular-nums",
-                activeSuggestion?.fits
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                  : "border-destructive/30 bg-destructive/10 text-destructive",
-              )}
-            >
-              <span>{activeSuggestion?.bytes ?? 0} / 31 baitų</span>
-              <span aria-hidden="true">·</span>
-              <span>{activeSuggestion?.fits ? "telpa" : "viršija"}</span>
-            </span>
-          ) : null}
-        </div>
-
-        <div className="mt-4">
-          <div
-            className="inline-flex rounded-lg border bg-background p-1"
-            role="tablist"
-            aria-label="Įrenginio tipas"
-          >
-            {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
-              const selected = activeKind === kind;
-              return (
-                <button
-                  key={kind}
-                  id={`naming-${kind}-tab`}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  aria-controls={`naming-${kind}-panel`}
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => selectTab(kind)}
-                  onKeyDown={(event) => onTabKeyDown(event, kind)}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
-                    selected
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {tabLabels[kind]}
-                </button>
-              );
-            })}
-          </div>
-
-          {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
-            const suggestion = suggestedNames?.[kind];
-            return (
-              <div
-                key={kind}
-                id={`naming-${kind}-panel`}
-                role="tabpanel"
-                aria-labelledby={`naming-${kind}-tab`}
-                hidden={activeKind !== kind}
-                className="mt-3 flex min-h-16 items-center gap-2 rounded-xl border bg-background px-3 py-3"
+            {suggestedNames ? (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium tabular-nums",
+                  activeSuggestion?.fits
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                    : "border-destructive/30 bg-destructive/10 text-destructive",
+                )}
               >
-                <output className="min-w-0 flex-1 break-words font-mono text-sm font-medium leading-6">
-                  {suggestion?.value ?? "Vardas bus rodomas čia"}
-                </output>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  disabled={!suggestion?.fits}
-                  onClick={() => copy(kind)}
-                  aria-label={`${tabLabels[kind]}: kopijuoti vardą`}
-                >
-                  {copied === kind ? (
-                    <RiCheckLine className="text-emerald-600" aria-hidden />
-                  ) : (
-                    <RiFileCopyLine aria-hidden />
-                  )}
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-
-        {activeNeedsShortening ? (
-          <div className="mt-4 border-t pt-4" aria-live="polite">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <p className="text-sm font-semibold text-destructive">
-                {tabLabels[activeKind]} vardas viršija 31 baitą.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Pasirinkite trumpesnę vietovę; vardas pakeičiamas tik pasirinkus variantą.
-              </p>
-            </div>
-            {shorteningOptions.length > 0 ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {shorteningOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      setPlace(option.value);
-                      setSelectedLocality(null);
-                    }}
-                    aria-label={`Pasirinkti vietovę „${option.value}“ ${tabLabels[activeKind]} vardui`}
-                    className="rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    <span className="block font-medium text-foreground">{option.value}</span>
-                    <span className="mt-0.5 block text-muted-foreground">
-                      {localityOptionDescription(option)} · {tabLabels[activeKind]}{" "}
-                      {option.suggestions[activeKind].bytes}/31 baitų · telpa
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Šio pavadinimo automatiškai sutrumpinti nepavyko. Įrašykite trumpesnį vietovės
-                pavadinimą.
-              </p>
-            )}
+                <span>
+                  {activeSuggestion?.bytes ?? 0} / {maxLocatedNodeNameBytes} baitų
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>{activeSuggestion?.fits ? "telpa" : "viršija"}</span>
+              </span>
+            ) : null}
           </div>
-        ) : null}
-        <p className="sr-only" aria-live="polite">
-          {copied ? "Vardas nukopijuotas į iškarpinę." : ""}
-        </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
+            <div
+              className="inline-flex w-fit border bg-background p-1"
+              role="tablist"
+              aria-label="Įrenginio tipas"
+            >
+              {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
+                const selected = activeKind === kind;
+                return (
+                  <button
+                    key={kind}
+                    id={`naming-${kind}-tab`}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls={`naming-${kind}-panel`}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => selectTab(kind)}
+                    onKeyDown={(event) => onTabKeyDown(event, kind)}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                      selected
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {tabLabels[kind]}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div>
+              {(Object.keys(tabLabels) as DeviceKind[]).map((kind) => {
+                const suggestion = suggestedNames?.[kind];
+                return (
+                  <div
+                    key={kind}
+                    id={`naming-${kind}-panel`}
+                    role="tabpanel"
+                    aria-labelledby={`naming-${kind}-tab`}
+                    hidden={activeKind !== kind}
+                    className="flex min-h-12 items-center gap-2 border bg-background px-3 py-2.5"
+                  >
+                    <output className="min-w-0 flex-1 break-words font-mono text-sm font-medium leading-6">
+                      {suggestion?.value ?? "Vardas bus rodomas čia"}
+                    </output>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      disabled={!suggestion?.fits}
+                      onClick={() => copy(kind)}
+                      aria-label={`${tabLabels[kind]}: kopijuoti vardą`}
+                    >
+                      {copied === kind ? (
+                        <RiCheckLine className="text-emerald-600" aria-hidden />
+                      ) : (
+                        <RiFileCopyLine aria-hidden />
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {activeNeedsShortening ? (
+            <div className="mt-4 border-t pt-4" aria-live="polite">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <p className="text-sm font-semibold text-destructive">
+                  {tabLabels[activeKind]} vardas viršija {maxLocatedNodeNameBytes} UTF-8 baitus.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Pasirinkite trumpesnę vietovę; vardas pakeičiamas tik pasirinkus variantą.
+                </p>
+              </div>
+              {shorteningOptions.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {shorteningOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setPlace(option.value);
+                        setSelectedLocality(null);
+                      }}
+                      aria-label={`Pasirinkti vietovę „${option.value}“ ${tabLabels[activeKind]} vardui`}
+                      className="rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
+                      <span className="block font-medium text-foreground">{option.value}</span>
+                      <span className="mt-0.5 block text-muted-foreground">
+                        {localityOptionDescription(option)} · {tabLabels[activeKind]}{" "}
+                        {option.suggestions[activeKind].bytes}/{maxLocatedNodeNameBytes} baitų
+                        · telpa
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Šio pavadinimo automatiškai sutrumpinti nepavyko. Įrašykite trumpesnį vietovės
+                  pavadinimą.
+                </p>
+              )}
+            </div>
+          ) : null}
+          <p className="sr-only" aria-live="polite">
+            {copied ? "Vardas nukopijuotas į iškarpinę." : ""}
+          </p>
+        </div>
       </div>
     </section>
   );
