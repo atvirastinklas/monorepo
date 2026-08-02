@@ -60,6 +60,12 @@ function abbreviateWord(word: string) {
   return firstCharacter ? `${firstCharacter}.` : word;
 }
 
+function shortenWord(word: string) {
+  const characters = Array.from(word);
+  if (characters.length <= 4) return abbreviateWord(word);
+  return `${characters.slice(0, 4).join("")}.`;
+}
+
 function truncateToBytes(value: string, budget: number) {
   let result = "";
   for (const character of Array.from(value)) {
@@ -83,6 +89,13 @@ function localityAlternatives(value: string) {
   for (let count = 1; count < words.length; count += 1) {
     alternatives.push([
       [...words.slice(0, count).map(abbreviateWord), ...words.slice(count)].join(" "),
+      "abbreviated",
+    ]);
+  }
+
+  if (words.length > 1) {
+    alternatives.push([
+      [...words.slice(0, -1).map(abbreviateWord), shortenWord(words.at(-1) ?? "")].join(" "),
       "abbreviated",
     ]);
   }
