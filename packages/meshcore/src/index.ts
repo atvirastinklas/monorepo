@@ -10,7 +10,18 @@ export {
   coreScopeNeighborGraphSchema,
   coreScopeNodesResponseSchema,
   deriveNetworkId,
+  createRepeaterTopology,
   normalizeRepeater,
   type Repeater,
+  type RepeaterTopologyEdge,
   type RepeaterTopology,
 } from "./topology";
+export {
+  beaconNodeSchema,
+  beaconNodesResponseSchema,
+  MESHCORE_PROVIDERS,
+  normalizeBeaconRepeater,
+  parseMeshcoreProvider,
+  type BeaconNode,
+  type MeshcoreProvider,
+} from "./providers";

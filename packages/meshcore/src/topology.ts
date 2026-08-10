@@ -98,6 +98,11 @@ export type RepeaterTopology = {
   neighborsByRepeater: Map<string, string[]>;
 };
 
+export type RepeaterTopologyEdge = {
+  source?: string;
+  target?: string;
+};
+
 export function normalizeRepeater(value: unknown): Repeater | null {
   const parsed = coreScopeNodeSchema.safeParse(value);
   if (!parsed.success) {
@@ -150,11 +155,19 @@ export function consolidateRepeaterTopology(
     .filter((repeater): repeater is Repeater => repeater !== null)
     .sort((left, right) => left.hexId.localeCompare(right.hexId));
 
+  return createRepeaterTopology(repeaters, graph.data.edges);
+}
+
+export function createRepeaterTopology(
+  repeaters: readonly Repeater[],
+  edges: readonly RepeaterTopologyEdge[],
+): RepeaterTopology {
+  const sortedRepeaters = [...repeaters].sort((left, right) => left.hexId.localeCompare(right.hexId));
   const neighbors = new Map<string, Set<string>>(
-    repeaters.map((repeater) => [repeater.hexId, new Set<string>()]),
+    sortedRepeaters.map((repeater) => [repeater.hexId, new Set<string>()]),
   );
 
-  for (const edge of graph.data.edges) {
+  for (const edge of edges) {
     const source = normalizeNeighborId(edge.source);
     const target = normalizeNeighborId(edge.target);
     if (source === null || target === null) {
@@ -166,7 +179,7 @@ export function consolidateRepeaterTopology(
   }
 
   return {
-    repeaters,
+    repeaters: sortedRepeaters,
     neighborsByRepeater: new Map(
       [...neighbors].map(([source, targets]) => [source, [...targets].sort()]),
     ),

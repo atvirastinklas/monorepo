@@ -1,12 +1,22 @@
 import {
+  beaconNodeSchema,
+  beaconNodesResponseSchema,
+  createRepeaterTopology,
   consolidateRepeaterTopology,
   coreScopeNodesResponseSchema,
+  normalizeBeaconRepeater,
+  parseMeshcoreProvider,
+  type BeaconNode,
+  type MeshcoreProvider,
+  type Repeater,
+  type RepeaterTopologyEdge,
   type RepeaterTopology,
 } from "@workspace/meshcore";
 import { z } from "zod";
 
 import { createDatabase, type Database, type RepeaterTable } from "./db";
 
+const BEACON_PAGE_SIZE = 100;
 const CORESCOPE_PAGE_SIZE = 500;
 const FETCH_TIMEOUT_MS = 15_000;
 
@@ -23,21 +33,32 @@ export type SyncResult = {
   syncedAt: string;
 };
 
+type SyncOptions = {
+  beaconBaseUrl?: string;
+  coreScopeBaseUrl?: string;
+  fetchFn?: typeof fetch;
+  now?: Date;
+  provider?: string;
+};
+
 export async function syncRepeaters(
   database: D1Database,
-  baseUrl: string,
-  fetchFn: typeof fetch = fetch,
-  now = new Date(),
+  {
+    beaconBaseUrl,
+    coreScopeBaseUrl,
+    fetchFn = fetch,
+    now = new Date(),
+    provider: providerValue,
+  }: SyncOptions = {},
 ): Promise<SyncResult> {
-  const [nodes, graph] = await Promise.all([
-    fetchAllNodes(baseUrl, fetchFn),
-    fetchJson(
-      `${trimTrailingSlash(baseUrl)}/api/analytics/neighbor-graph?min_count=1&min_score=0`,
-      fetchFn,
-    ),
-  ]);
-
-  const topology = consolidateRepeaterTopology(nodes, graph);
+  const provider = parseMeshcoreProvider(providerValue);
+  const { fetched, topology } =
+    provider === "beacon"
+      ? await fetchBeaconTopology(requiredBaseUrl(beaconBaseUrl, provider), fetchFn)
+      : await fetchCoreScopeTopology(
+          requiredBaseUrl(coreScopeBaseUrl, provider),
+          fetchFn,
+        );
   const syncedAt = now.toISOString();
   const db = createDatabase(database);
 
@@ -53,7 +74,7 @@ export async function syncRepeaters(
     .executeTakeFirst();
 
   return {
-    fetched: nodes.length,
+    fetched,
     neighbors: countNeighbors(topology),
     removed:
       Number(deletedRepeaters?.numDeletedRows ?? 0) + Number(deletedNeighbors?.numDeletedRows ?? 0),
@@ -62,7 +83,28 @@ export async function syncRepeaters(
   };
 }
 
-async function fetchAllNodes(baseUrl: string, fetchFn: typeof fetch): Promise<unknown[]> {
+async function fetchCoreScopeTopology(
+  baseUrl: string,
+  fetchFn: typeof fetch,
+): Promise<{ fetched: number; topology: RepeaterTopology }> {
+  const [nodes, graph] = await Promise.all([
+    fetchAllCoreScopeNodes(baseUrl, fetchFn),
+    fetchJson(
+      `${trimTrailingSlash(baseUrl)}/api/analytics/neighbor-graph?min_count=1&min_score=0`,
+      fetchFn,
+    ),
+  ]);
+
+  return {
+    fetched: nodes.length,
+    topology: consolidateRepeaterTopology(nodes, graph),
+  };
+}
+
+async function fetchAllCoreScopeNodes(
+  baseUrl: string,
+  fetchFn: typeof fetch,
+): Promise<unknown[]> {
   const nodes: unknown[] = [];
   let offset = 0;
   let total = Number.POSITIVE_INFINITY;
@@ -93,23 +135,110 @@ async function fetchAllNodes(baseUrl: string, fetchFn: typeof fetch): Promise<un
   return nodes;
 }
 
-async function fetchJson(url: string, fetchFn: typeof fetch): Promise<unknown> {
+async function fetchBeaconTopology(
+  baseUrl: string,
+  fetchFn: typeof fetch,
+): Promise<{ fetched: number; topology: RepeaterTopology }> {
+  const nodes = await fetchAllBeaconNodes(baseUrl, fetchFn);
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const repeaters = nodes
+    .map(normalizeBeaconRepeater)
+    .filter((repeater): repeater is Repeater => repeater !== null);
+  const edges: RepeaterTopologyEdge[] = [];
+
+  for (const node of nodes) {
+    const source = node.publicKey.toLowerCase();
+    for (const neighborId of node.neighborIds) {
+      const neighbor = nodesById.get(neighborId);
+      if (neighbor) {
+        edges.push({ source, target: neighbor.publicKey.toLowerCase() });
+      }
+    }
+  }
+
+  return {
+    fetched: nodes.length,
+    topology: createRepeaterTopology(repeaters, edges),
+  };
+}
+
+async function fetchAllBeaconNodes(baseUrl: string, fetchFn: typeof fetch) {
+  const nodes: BeaconNode[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | undefined;
+
+  while (true) {
+    const url = new URL("/api/v1/nodes", trimTrailingSlash(baseUrl));
+    url.searchParams.set("limit", String(BEACON_PAGE_SIZE));
+    url.searchParams.set("neighbors", "true");
+    if (cursor) {
+      url.searchParams.set("cursor", cursor);
+    }
+
+    const payload = await fetchJson(url.toString(), fetchFn);
+    const response = beaconNodesResponseSchema.safeParse(payload);
+    if (!response.success) {
+      throw new Error("Beacon nodes response is invalid");
+    }
+
+    for (const item of response.data.items) {
+      const node = beaconNodeSchema.safeParse(item);
+      if (!node.success) {
+        throw new Error("Beacon nodes response contains an invalid node");
+      }
+
+      nodes.push(node.data);
+    }
+
+    if (!response.data.hasMore) {
+      return nodes;
+    }
+
+    if (response.data.nextCursor === null || response.data.nextCursor === undefined) {
+      throw new Error("Beacon nodes response is missing its next cursor");
+    }
+
+    cursor = String(response.data.nextCursor);
+    if (seenCursors.has(cursor)) {
+      throw new Error("Beacon nodes response returned a repeated cursor");
+    }
+
+    seenCursors.add(cursor);
+  }
+}
+
+async function fetchJson(
+  url: string,
+  fetchFn: typeof fetch,
+  headers: HeadersInit = {},
+): Promise<unknown> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
     const response = await fetchFn(url, {
-      headers: { accept: "application/json" },
+      headers: {
+        accept: "application/json",
+        ...headers,
+      },
       signal: controller.signal,
     });
     if (!response.ok) {
-      throw new Error(`CoreScope request failed with ${response.status}: ${url}`);
+      throw new Error(`MeshCore provider request failed with ${response.status}: ${url}`);
     }
 
     return await response.json();
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function requiredBaseUrl(value: string | undefined, provider: MeshcoreProvider): string {
+  if (!value) {
+    throw new Error(`Missing ${provider} provider base URL`);
+  }
+
+  return value;
 }
 
 async function persistTopology(

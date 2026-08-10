@@ -1,4 +1,8 @@
-import { compactId, MESHCORE_IATA_REGIONS } from "@workspace/meshcore";
+import {
+  compactId,
+  MESHCORE_IATA_REGIONS,
+  parseMeshcoreProvider,
+} from "@workspace/meshcore";
 
 import { createDatabase } from "./db";
 import { syncRepeaters } from "./sync";
@@ -38,7 +42,7 @@ export default {
           return json({ error: "Unauthorized" }, 401);
         }
 
-        const result = await syncRepeaters(env.MESHCORE_DB, env.CORESCOPE_BASE_URL);
+        const result = await syncRepeaters(env.MESHCORE_DB, syncOptionsFor(env));
         console.info(JSON.stringify({ event: "repeaters.sync.succeeded", ...result }));
         return json(result, 200, { "cache-control": "no-store" });
       }
@@ -59,11 +63,13 @@ export default {
 
   async scheduled(controller, env): Promise<void> {
     try {
-      const result = await syncRepeaters(env.MESHCORE_DB, env.CORESCOPE_BASE_URL);
+      const options = syncOptionsFor(env);
+      const result = await syncRepeaters(env.MESHCORE_DB, options);
       console.info(
         JSON.stringify({
           cron: controller.cron,
           event: "repeaters.sync.succeeded",
+          provider: options.provider,
           scheduledTime: controller.scheduledTime,
           ...result,
         }),
@@ -81,6 +87,14 @@ export default {
     }
   },
 } satisfies ExportedHandler<SyncEnv>;
+
+function syncOptionsFor(env: SyncEnv) {
+  return {
+    beaconBaseUrl: env.BEACON_BASE_URL,
+    coreScopeBaseUrl: env.CORESCOPE_BASE_URL,
+    provider: parseMeshcoreProvider(env.MESHCORE_PROVIDER),
+  };
+}
 
 async function getStatsResponse(env: SyncEnv): Promise<Response> {
   const db = createDatabase(env.MESHCORE_DB);

@@ -14,18 +14,16 @@
 		}
 	],
 	"vars": {
-		"CORESCOPE_BASE_URL": "https://meshcore.atvirastinklas.lt"
+    "BEACON_BASE_URL": "https://beacon.atvirastinklas.lt",
+    "CORESCOPE_BASE_URL": "https://meshcore.atvirastinklas.lt",
+    "MESHCORE_PROVIDER": "beacon"
 	},
 	"d1_databases": [
 		{
 			"binding": "MESHCORE_DB",
 			"database_name": "api-mc",
+      "database_id": "75ddfa09-8622-4331-b664-1d7ba9249a1f",
 			"migrations_dir": "migrations"
-		},
-		{
-			"binding": "api_mc",
-			"database_name": "api-mc",
-			"database_id": "75ddfa09-8622-4331-b664-1d7ba9249a1f"
 		}
 	],
 	"triggers": {

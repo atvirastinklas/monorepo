@@ -4,7 +4,9 @@ import {
   consolidateRepeaterTopology,
   deriveNetworkId,
   findMeshcoreIataRegion,
+  normalizeBeaconRepeater,
   normalizeRepeater,
+  parseMeshcoreProvider,
 } from "../src";
 
 describe("MeshCore topology", () => {
@@ -52,6 +54,47 @@ describe("MeshCore topology", () => {
       "cccccccccccccccc",
     ]);
     expect(topology.neighborsByRepeater.get("bbbbbbbbbbbbbbbb")).toEqual(["aaaaaaaaaaaaaaaa"]);
+  });
+
+  it("normalizes Beacon repeaters with epoch timestamps and six-character network IDs", () => {
+    expect(
+      normalizeBeaconRepeater({
+        firstSeen: 1_767_225_600_000,
+        id: "e3b5f9d2-7881-49fb-8e51-58fd7d2dfe69",
+        lastSeen: 1_767_312_000_000,
+        lat: 54.7,
+        lng: 25.2,
+        name: "Beacon Alpha",
+        nodeTypeName: "repeater",
+        publicKey: "AABBCCDDEEFF0011",
+      }),
+    ).toEqual({
+      createdAt: "2026-01-01T00:00:00.000Z",
+      hexId: "aabbccddeeff0011",
+      lastHeard: "2026-01-02T00:00:00.000Z",
+      lat: 54.7,
+      locationIata: "VNO",
+      lon: 25.2,
+      name: "Beacon Alpha",
+      networkId: "aabbcc",
+    });
+  });
+
+  it("keeps only domestic Beacon repeaters and defaults the provider to Beacon", () => {
+    const node = {
+      id: "node",
+      lat: 54.7,
+      lng: 25.2,
+      nodeTypeName: "repeater",
+      publicKey: "aaaaaaaaaaaaaaaa",
+    };
+
+    expect(normalizeBeaconRepeater(node)).not.toBeNull();
+    expect(normalizeBeaconRepeater({ ...node, lat: 52.5, lng: 13.4 })).toBeNull();
+    expect(normalizeBeaconRepeater({ ...node, nodeTypeName: "companion" })).toBeNull();
+    expect(parseMeshcoreProvider(undefined)).toBe("beacon");
+    expect(parseMeshcoreProvider("corescope")).toBe("corescope");
+    expect(() => parseMeshcoreProvider("other")).toThrow("Unsupported MeshCore provider");
   });
 });
 
